@@ -162,6 +162,23 @@ function LookSection() {
   );
 }
 
+const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+function DaysPick({ label, k, hint }) {
+  const s = useSettings();
+  const on = s[k] || [];
+  return (
+    <div className="f full">
+      {label}
+      <div className="chips dow-chips">
+        {DOW.map((d, i) => (
+          <button key={d} type="button" className="chip" aria-pressed={on.includes(i + 1)} onClick={() => saveSettings({ [k]: on.includes(i + 1) ? on.filter((x) => x !== i + 1) : [...on, i + 1].sort() })}>{d}</button>
+        ))}
+      </div>
+      <span className="f-hint">{hint}</span>
+    </div>
+  );
+}
+
 function ProgramSection() {
   const s = useSettings();
   const field = (key, label, hint, step) => (
@@ -180,6 +197,8 @@ function ProgramSection() {
           <input className="input" type="date" value={s.programStart || ''} onChange={(e) => saveSettings({ programStart: e.target.value ? weekStart(e.target.value) : '' })} />
           <span className="f-hint">Always a Monday. The 8 weeks repeat after week 8.</span>
         </label>
+        <DaysPick label="Days you can lift" k="liftDays" hint="The week plan on Today puts lifts on these days, never two in a row." />
+        <DaysPick label="Basketball days" k="bballDays" hint="Counts as your hard session." />
         {field('bodyweight', 'Body weight (lb)', 'Used until you log a weigh-in')}
         {field('proteinPerLb', 'Protein g per lb', '0.7–1; 0.8 is plenty')}
         {field('zone2Goal', 'Zone 2 min / week', 'Galpin: about 150')}

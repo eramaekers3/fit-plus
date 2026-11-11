@@ -1299,3 +1299,37 @@ p.banner { margin: 0; }
 .app:has(.rest-bar) .fab { bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
 .tab { position: relative; }
 .tab-live { position: absolute; top: 6px; right: calc(50% - 18px); width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 2px #1c1c1b; animation: blink 1.4s ease-in-out infinite; }
+
+/* Week plan (Today → This week) */
+.plan-days { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; }
+.pd { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); }
+.pd:first-child { border-top: 0; }
+.pd.past { opacity: 0.55; }
+.pd.today { margin: 0 -8px; padding: 8px; border-radius: 12px; border-top-color: transparent; background: var(--raised); }
+.pd.today + .pd { border-top-color: transparent; }
+.pd-day { display: flex; flex-direction: column; line-height: 1.1; }
+.pd-day b { font-size: 13px; }
+.pd-day span { font-size: 12px; color: var(--muted); font-weight: 700; }
+.pd.today .pd-day b { color: var(--sun); }
+.pd-items { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.pd-chip {
+  --c: var(--muted);
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 999px;
+  border: 1.5px solid color-mix(in srgb, var(--c) 55%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent);
+  color: var(--ink); font-size: 12.5px; font-weight: 700; white-space: nowrap;
+}
+.pd-chip:disabled { cursor: default; opacity: 1; color: var(--ink); }
+.pd-chip .icon { color: var(--c); }
+.pd-chip.t-lift { --c: var(--sun); }
+.pd-chip.t-zone2, .pd-chip.t-walk { --c: var(--sky); }
+.pd-chip.t-bball, .pd-chip.t-intervals { --c: var(--coral); }
+.pd-chip.t-rest { --c: var(--dim); border-style: dashed; background: none; color: var(--muted); }
+.pd-chip.done { background: color-mix(in srgb, var(--mint) 16%, transparent); border-color: color-mix(in srgb, var(--mint) 55%, transparent); }
+.pd-chip.done .icon { color: var(--mint); }
+.pd-time { font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pd-free { font-size: 11.5px; font-weight: 700; color: var(--dim); white-space: nowrap; }
+.pd-none { color: var(--dim); }
+.plan-note { margin: 0 0 6px; padding-left: 10px; border-left: 3px solid var(--sun); font-size: 13px; }
+.plan-src { margin: 0 0 12px; }
+.dow-chips { margin-top: 6px; }
+.dow-chips .chip { padding: 5px 10px; font-size: 13px; }

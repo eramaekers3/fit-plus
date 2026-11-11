@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSettings, saveSettings } from '../store.js';
 import { useSessions, useCardio, useFood, useWeighs, useVerts, useOpenSession, useProteinTarget, logProtein } from '../lib/data.js';
 import { prescribe, weekInfo, nextDay, weekSummary, weightTrend, avg7 } from '../lib/engine.js';
-import { DAYS, dayLabel, cardioName } from '../lib/program.js';
-import { todayISO, addDays, fmt, weekStart } from '../lib/dates.js';
+import { DAYS, dayLabel } from '../lib/program.js';
+import { todayISO, addDays, fmt, weekStart, minToLabel, nowMin } from '../lib/dates.js';
+import { useBusyDays } from '../lib/calendar.js';
+import { planWeek } from '../lib/weekplan.js';
 import { goTab, quickLog, openVert, openSession } from '../lib/open.js';
 import { startSession, rx } from './TrainView.jsx';
 import CardStack from '../components/CardStack.jsx';
@@ -151,17 +153,7 @@ function WeekCard() {
         <h2>This week</h2>
         <button className="mini" onClick={() => quickLog('cardio')}><Icon name="plus" size={13} /> Cardio</button>
       </div>
-      <div className="week-strip">
-        {w.days.map((d) => (
-          <button key={d.date} className={`wd${d.date === today ? ' today' : ''}`} onClick={() => d.lift && openSession(d.lift.id)} disabled={!d.lift}>
-            <span className="wd-k">{fmt(d.date, { weekday: 'narrow' })}</span>
-            <span className={`wd-lift${d.lift ? ' on' : ''}`}>{d.lift ? d.lift.day.slice(1) : ''}</span>
-            <span className="wd-c">
-              {d.cardio.map((c) => <i key={c.id} className={`c-${c.type}`} title={`${cardioName(c.type)} ${c.min} min`} />)}
-            </span>
-          </button>
-        ))}
-      </div>
+      <WeekPlan />
       <div className="week-rings">
         <div className="wr">
           <Ring p={w.lifts.length / 3} size={58} stroke={7}><b>{w.lifts.length}</b><span>/3</span></Ring>
@@ -177,6 +169,68 @@ function WeekCard() {
         </div>
       </div>
     </section>
+  );
+}
+
+const ICON = { lift: 'train', zone2: 'heart', walk: 'heart', bball: 'ball', intervals: 'bolt', rest: 'moon' };
+const hm = minToLabel;
+
+/** Each day of the week: what's done, and what's planned and when (around lifestyle+'s calendar). */
+function WeekPlan() {
+  const s = useSettings();
+  const sessions = useSessions();
+  const cardio = useCardio();
+  const busy = useBusyDays();
+  const today = todayISO();
+  const [now, setNow] = useState(nowMin);
+  useEffect(() => {
+    const t = setInterval(() => setNow(nowMin()), 5 * 60 * 1000);
+    return () => clearInterval(t);
+  }, []);
+  const p = useMemo(() => planWeek({ today, now, busy, sessions, cardio, settings: s }), [today, now, busy, sessions, cardio, s]);
+  const source = busy.loaded
+    ? 'Times fit around your lifestyle+ calendar and blocks.'
+    : busy.calendars
+      ? 'Loading your lifestyle+ calendar…'
+      : busy.blocks
+        ? 'Times fit around your lifestyle+ blocks. Add calendars in lifestyle+ to include classes.'
+        : 'Sign in to fit times around your lifestyle+ calendar.';
+
+  return (
+    <>
+      <ol className="plan-days">
+        {p.days.map((d) => (
+          <li key={d.date} className={`pd${d.today ? ' today' : ''}${d.past ? ' past' : ''}`}>
+            <span className="pd-day">
+              <b>{fmt(d.date, { weekday: 'short' })}</b>
+              <span>{fmt(d.date, { day: 'numeric' })}</span>
+            </span>
+            <span className="pd-items">
+              {d.done.map((x, i) => (
+                <button key={`d${i}`} className={`pd-chip done t-${x.type}`} onClick={() => x.id && openSession(x.id)} disabled={!x.id}>
+                  <Icon name="check" size={12} /> {x.label}{x.min ? ` · ${x.min}m` : ''}
+                </button>
+              ))}
+              {d.plan.map((x, i) => (
+                <button
+                  key={`p${i}`}
+                  className={`pd-chip t-${x.type}`}
+                  disabled={!(x.type === 'lift' && d.today) && x.type !== 'zone2' && x.type !== 'walk' && x.type !== 'intervals'}
+                  onClick={() => (x.type === 'lift' ? goTab('train') : quickLog('cardio'))}
+                >
+                  <Icon name={ICON[x.type]} size={12} /> {x.label}
+                  {x.start != null && <span className="pd-time">{hm(x.start)}</span>}
+                </button>
+              ))}
+              {!d.done.length && !d.plan.length && d.past && <span className="pd-none">—</span>}
+            </span>
+            {d.free != null && <span className="pd-free">{d.allDay.length ? '★ ' : ''}{d.free >= 60 ? `${Math.round(d.free / 60)}h` : `${d.free}m`} free</span>}
+          </li>
+        ))}
+      </ol>
+      {p.notes.map((n) => <p key={n} className="plan-note">{n}</p>)}
+      <p className="muted small plan-src">{source}</p>
+    </>
   );
 }
 

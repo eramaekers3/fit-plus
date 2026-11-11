@@ -176,6 +176,8 @@ export const DEFAULT_SETTINGS = {
   bodyweight: 230, // lb, used for protein until you log a weigh-in
   proteinPerLb: 0.8, // g of protein per lb of body weight
   zone2Goal: 150, // minutes of zone 2 a week
+  liftDays: [1, 3, 4, 5], // days you can lift (1 = Mon … 7 = Sun), used by the week plan
+  bballDays: [6], // days you usually play basketball
   swaps: {}, // { exerciseId: alternativeId } chosen in Plan
   nextWeights: {}, // { exerciseId: lb } a weight you set by hand for the next time it comes up
   // Saved meals for one-tap protein. Swap these for your usual campus orders.

@@ -7,18 +7,30 @@
 // from either app for a date lands on the same row instead of making a duplicate.
 //
 // Offline or signed out, a weigh-in waits here and goes up on the next sync.
+//
+// It also reads (never writes) two more things from lifestyle+ for the week plan on Today:
+// its settings (your Apple Calendar links and day hours) and your time blocks.
 import { useSyncExternalStore } from 'react';
 import { supabase } from '../supabase.js';
 import { onSynced, currentUserId } from '../store.js';
 import { idFor } from './ids.js';
 
-const KEY = 'fitplus.lifestyleWeights';
+const KEY = 'fitplus.lifestyle.v2';
+const OLD_KEY = 'fitplus.lifestyleWeights'; // weights only; replaced by v2 (adds settings and blocks)
+const KINDS = ['weight', 'block', 'settings'];
+const SETTINGS_ID = idFor('settings'); // lifestyle+'s settings record (same id scheme as fit+'s)
 const TABLE = 'records'; // lifestyle+'s table
 
 function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY));
     if (raw && raw.rows) return { rows: raw.rows, pending: raw.pending || {}, lastPull: raw.lastPull || null, owner: raw.owner || null };
+    // Coming from the weights-only version: keep anything still waiting to send, pull everything fresh.
+    const old = JSON.parse(localStorage.getItem(OLD_KEY));
+    if (old) {
+      localStorage.removeItem(OLD_KEY);
+      return { rows: {}, pending: old.pending || {}, lastPull: null, owner: old.owner || null };
+    }
   } catch {
     /* storage unavailable */
   }
@@ -27,12 +39,18 @@ function load() {
 
 let st = load();
 let list = [];
+let blocks = [];
+let lsSettings = {};
 let linked = false; // true once a pull from lifestyle+ has worked on this device
 const listeners = new Set();
 
 function rebuild() {
-  list = Object.values(st.rows)
-    .filter((r) => !r.deleted && r.date && Number(r.lbs))
+  const rows = Object.values(st.rows).filter((r) => !r.deleted);
+  blocks = rows.filter((r) => r.kind === 'block' && r.date && r.end > r.start);
+  const set = st.rows[SETTINGS_ID];
+  lsSettings = set && !set.deleted ? set : {};
+  list = rows
+    .filter((r) => (r.kind || 'weight') === 'weight' && r.date && Number(r.lbs))
     .map((r) => ({ id: r.id, date: r.date, lb: Number(r.lbs), source: r.source || 'lifestyle+' }));
   linked = !!st.lastPull;
 }
@@ -62,6 +80,21 @@ export function useLifestyleWeights() {
 }
 export const isLinked = () => linked;
 
+const sub = (l) => {
+  listeners.add(l);
+  return () => listeners.delete(l);
+};
+/** lifestyle+ time blocks: [{ id, date, start, end, title, type }] (minutes from midnight). */
+export const useLifestyleBlocks = () => useSyncExternalStore(sub, () => blocks);
+/** lifestyle+ settings: { calendars: [{ id, url }], dayStart, dayEnd, … } ({} until the first pull). */
+export const useLifestyleSettings = () => useSyncExternalStore(sub, () => lsSettings);
+
+const cutoff = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 /** Pulls weigh-ins changed in lifestyle+ since last time, then sends any that were waiting. */
 export async function syncWeights(session) {
   if (!supabase || !session) return;
@@ -83,15 +116,20 @@ export async function syncWeights(session) {
   for (let from = 0; ; from += 1000) {
     let q = supabase
       .from(TABLE)
-      .select('id, data, deleted, synced_at')
-      .eq('kind', 'weight')
+      .select('id, kind, data, deleted, synced_at')
+      .in('kind', KINDS)
       .order('synced_at', { ascending: true })
       .range(from, from + 999);
     if (since) q = q.gt('synced_at', since);
     const { data, error } = await q;
     if (error) throw error;
     for (const row of data) {
-      st.rows[row.id] = { ...(row.data || {}), id: row.id, deleted: row.deleted };
+      // Old time blocks are no use for planning, so they aren't kept on the phone.
+      if (row.kind === 'block' && row.data && row.data.date && row.data.date < cutoff()) {
+        delete st.rows[row.id];
+      } else {
+        st.rows[row.id] = { ...(row.data || {}), id: row.id, kind: row.kind, deleted: row.deleted };
+      }
       maxSeen = Math.max(maxSeen, Date.parse(row.synced_at));
     }
     if (data.length < 1000) break;
@@ -105,7 +143,7 @@ export async function syncWeights(session) {
 export function putLifestyleWeight(date, lbs) {
   const id = idFor(`w:${date}`);
   const prev = st.rows[id] || {};
-  st.rows[id] = { ...prev, id, date, lbs: Number(lbs), source: undefined, deleted: false };
+  st.rows[id] = { ...prev, id, kind: 'weight', date, lbs: Number(lbs), source: undefined, deleted: false };
   st.pending[id] = { id, date, lbs: Number(lbs), updated_at: new Date().toISOString() };
   save();
   emit();
