@@ -214,7 +214,7 @@ export function ExerciseSheet({ exId, onClose }) {
                   <b>{fmt(h.date, { month: 'short', day: 'numeric' })}{h.deload ? ' · deload' : ''}</b>
                   <span className="muted small">{h.item.log.map((l) => (ex.kind === 'jump' ? `${l.reps}${l.h ? `@${l.h}″` : ''}` : `${l.w}×${l.reps}${l.rir != null ? ` (${l.rir})` : ''}`)).join(', ')}</span>
                 </span>
-                {best > 0 && !ex.bw && <span className="meta">~{Math.round(best)}</span>}
+                {best > 0 && !ex.bw && !ex.assist && <span className="meta">~{Math.round(best)}</span>}
               </li>
             );
           })}

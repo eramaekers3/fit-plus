@@ -105,7 +105,7 @@ export function rx(it) {
   const reps = it.kind === 'acc' && it.lo !== it.hi ? `${it.reps}` : `${it.lo}`;
   const unit = it.unit === 'm' ? ' m' : '';
   const side = it.perSide ? '/side' : '';
-  const w = it.kind === 'jump' ? '' : it.bw ? (it.w ? ` · +${it.w} lb` : ' · bodyweight') : it.w != null ? ` · ${it.w} lb` : ' · pick weight';
+  const w = it.kind === 'jump' ? '' : it.bw ? (it.w ? ` · +${it.w} lb` : ' · bodyweight') : it.assist ? (it.w != null ? ` · ${it.w} lb help` : ' · pick help') : it.w != null ? ` · ${it.w} lb` : ' · pick weight';
   return `${it.sets} × ${reps}${unit}${side}${w}`;
 }
 
@@ -392,7 +392,7 @@ function ExerciseCard({ it, session, updItem }) {
               onChange={(e) => updItem(it.key, (x) => ({ ...x, w: e.target.value === '' ? null : Number(e.target.value.replace(/[^\d.]/g, '')) }))}
               aria-label="Weight in pounds"
             />
-            <span>{it.bw ? 'lb added' : 'lb'}{it.perSide && !it.bw ? ' each' : ''}</span>
+            <span>{it.bw ? 'lb added' : it.assist ? 'lb help' : 'lb'}{it.perSide && !it.bw ? ' each' : ''}</span>
           </label>
           <button className="icon-btn" aria-label={`${it.inc} lb heavier`} onClick={() => setW((it.w ?? 0) + it.inc)}><Icon name="plus" /></button>
         </div>
@@ -445,7 +445,7 @@ function ExerciseCard({ it, session, updItem }) {
                 <button className="btn" onClick={(e) => logSet(null, e.currentTarget)}>Log set</button>
               </div>
             ) : it.w == null && !it.bw ? (
-              <p className="hint">Pick a starting weight above: one you could do for {it.reps} with {isMain ? '2–3' : '1–2'} reps left.</p>
+              <p className="hint">{it.assist ? `Pick enough help above to get ${it.reps} reps with 1–2 left. Less help is harder.` : `Pick a starting weight above: one you could do for ${it.reps} with ${isMain ? '2–3' : '1–2'} reps left.`}</p>
             ) : (
               <>
                 <p className="rir-q">Reps left in the tank? Tap to log the set.</p>

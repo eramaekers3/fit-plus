@@ -25,6 +25,7 @@ export const LEG_MUSCLES = MUSCLES.filter((m) => m.legs).map((m) => m.id);
    muscles: primary muscles (count as a full set each); also: secondary (half a set)
    lowBack: loads the spine enough that a sore low back changes it
    bw:     bodyweight movement; the weight you log is extra weight added (0 to start)
+   assist: the weight you log is help (an assisted machine or band); progress means taking help away
    unit:   'reps' or 'm' (carries are logged in meters)
 */
 export const EXERCISES = {
@@ -56,6 +57,7 @@ export const EXERCISES = {
   carry: { name: 'Suitcase carry', kind: 'acc', inc: 5, muscles: ['core'], perSide: true, unit: 'm', cue: 'Stay tall; don’t lean.' },
 
   // Alternatives (picked in Plan, or used automatically when your low back is sore).
+  assistpullup: { name: 'Assisted pull-up', kind: 'acc', inc: 10, assist: true, muscles: ['back', 'biceps'], cue: 'Machine or band. The weight is how much help you get: less help is harder.' },
   latpulldown: { name: 'Lat pulldown', kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Pull to the top of the chest.' },
   ssbsquat: { name: 'Safety squat bar squat', kind: 'main', inc: 5, muscles: ['quads', 'glutes'], also: ['core', 'lowback'], lowBack: true, cue: 'Brace hard, sit between your hips.' },
   splitsquat: { name: 'Dumbbell split squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], perSide: true, cue: 'Back-friendly stand-in for the squat.' },
@@ -68,7 +70,7 @@ export const exName = (id) => (EXERCISES[id] || { name: id }).name;
 
 /** Swaps you can pick in Plan for each exercise in the program. */
 export const ALTERNATIVES = {
-  pullup: ['latpulldown'],
+  pullup: ['assistpullup', 'latpulldown'],
   csrow: ['hexrow', 'dbrow'],
   frontsquat: ['ssbsquat', 'splitsquat'],
   bench: ['dbbench'],

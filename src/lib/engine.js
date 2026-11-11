@@ -199,6 +199,7 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
       unit: ex.unit || 'reps',
       inc: ex.inc || 5,
       bw: !!ex.bw,
+      assist: !!ex.assist,
       cue: ex.cue,
       lastBest: target.lastBest,
       skipped,
@@ -230,7 +231,7 @@ export function targetFor({ exId, kind, lo, hi, date, deload, sessions, override
   if (override != null && override !== '') return { w: Number(override), reps: lo, why: 'Weight set by you' };
   const normal = hist.filter((h) => !h.deload);
   const last = normal[0] || hist[0];
-  if (!last) return { w: ex.bw ? 0 : null, reps: lo, why: ex.bw ? null : 'First time: pick a starting weight' };
+  if (!last) return { w: ex.bw ? 0 : null, reps: lo, why: ex.bw ? null : ex.assist ? 'First time: pick enough help to get the reps' : 'First time: pick a starting weight' };
 
   const it = last.item;
   const lastW = it.mult && it.mult < 1 && it.base != null ? it.base : workingWeight(it);
@@ -260,6 +261,11 @@ export function targetFor({ exId, kind, lo, hi, date, deload, sessions, override
   const sets = it.log;
   const top = it.hi || hi;
   const allTop = sets.length >= Math.min(it.sets || 1, 3) && sets.every((x) => x.reps >= top);
+  if (allTop && ex.assist) {
+    // Assisted: progress means less help. At zero help it's a real pull-up.
+    if (lastW <= inc) return { w: 0, reps: lo, why: 'No help needed: time to swap to real pull-ups in Plan' };
+    return { w: lastW - inc, reps: lo, why: `${inc} lb less help: top of the range on every set` };
+  }
   if (allTop) return { w: lastW + inc, reps: lo, why: `+${inc} lb: top of the range on every set` };
   const worst = Math.min(...sets.map((x) => x.reps));
   return { w: lastW, reps: Math.max(lo, Math.min(hi, worst + 1)) };
@@ -328,7 +334,7 @@ export function prsIn(session, sessions) {
       if (before.length && h > Math.max(...before)) out.push({ ex: it.ex, text: `${exName(it.ex)}: ${h} in`, value: h });
       continue;
     }
-    if (it.bw) continue;
+    if (it.bw || it.assist) continue;
     const best = bestE1(it);
     if (!best) continue;
     const before = historyOf(sessions.filter((s) => s.id !== session.id), it.ex, session.date).map((x) => bestE1(x.item));
