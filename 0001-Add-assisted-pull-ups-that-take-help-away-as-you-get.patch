@@ -1,0 +1,132 @@
+From d40e645cc033c4fa4905294ce3864a26746ab8a4 Mon Sep 17 00:00:00 2001
+From: Ethan Ramaekers <noreply@anthropic.com>
+Date: Wed, 11 Nov 2026 09:24:26 -0600
+Subject: [PATCH] Add assisted pull-ups that take help away as you get stronger
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Qa5t6MyAAc3aZpaMFYaoag
+---
+ src/lib/engine.js       | 10 ++++++++--
+ src/lib/program.js      |  4 +++-
+ src/views/PlanView.jsx  |  2 +-
+ src/views/TrainView.jsx |  6 +++---
+ 4 files changed, 15 insertions(+), 7 deletions(-)
+
+diff --git a/src/lib/engine.js b/src/lib/engine.js
+index fdfdf2d..9a7fd7c 100644
+--- a/src/lib/engine.js
++++ b/src/lib/engine.js
+@@ -199,6 +199,7 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
+       unit: ex.unit || 'reps',
+       inc: ex.inc || 5,
+       bw: !!ex.bw,
++      assist: !!ex.assist,
+       cue: ex.cue,
+       lastBest: target.lastBest,
+       skipped,
+@@ -230,7 +231,7 @@ export function targetFor({ exId, kind, lo, hi, date, deload, sessions, override
+   if (override != null && override !== '') return { w: Number(override), reps: lo, why: 'Weight set by you' };
+   const normal = hist.filter((h) => !h.deload);
+   const last = normal[0] || hist[0];
+-  if (!last) return { w: ex.bw ? 0 : null, reps: lo, why: ex.bw ? null : 'First time: pick a starting weight' };
++  if (!last) return { w: ex.bw ? 0 : null, reps: lo, why: ex.bw ? null : ex.assist ? 'First time: pick enough help to get the reps' : 'First time: pick a starting weight' };
+ 
+   const it = last.item;
+   const lastW = it.mult && it.mult < 1 && it.base != null ? it.base : workingWeight(it);
+@@ -260,6 +261,11 @@ export function targetFor({ exId, kind, lo, hi, date, deload, sessions, override
+   const sets = it.log;
+   const top = it.hi || hi;
+   const allTop = sets.length >= Math.min(it.sets || 1, 3) && sets.every((x) => x.reps >= top);
++  if (allTop && ex.assist) {
++    // Assisted: progress means less help. At zero help it's a real pull-up.
++    if (lastW <= inc) return { w: 0, reps: lo, why: 'No help needed: time to swap to real pull-ups in Plan' };
++    return { w: lastW - inc, reps: lo, why: `${inc} lb less help: top of the range on every set` };
++  }
+   if (allTop) return { w: lastW + inc, reps: lo, why: `+${inc} lb: top of the range on every set` };
+   const worst = Math.min(...sets.map((x) => x.reps));
+   return { w: lastW, reps: Math.max(lo, Math.min(hi, worst + 1)) };
+@@ -328,7 +334,7 @@ export function prsIn(session, sessions) {
+       if (before.length && h > Math.max(...before)) out.push({ ex: it.ex, text: `${exName(it.ex)}: ${h} in`, value: h });
+       continue;
+     }
+-    if (it.bw) continue;
++    if (it.bw || it.assist) continue;
+     const best = bestE1(it);
+     if (!best) continue;
+     const before = historyOf(sessions.filter((s) => s.id !== session.id), it.ex, session.date).map((x) => bestE1(x.item));
+diff --git a/src/lib/program.js b/src/lib/program.js
+index 11541cd..5aee472 100644
+--- a/src/lib/program.js
++++ b/src/lib/program.js
+@@ -25,6 +25,7 @@ export const LEG_MUSCLES = MUSCLES.filter((m) => m.legs).map((m) => m.id);
+    muscles: primary muscles (count as a full set each); also: secondary (half a set)
+    lowBack: loads the spine enough that a sore low back changes it
+    bw:     bodyweight movement; the weight you log is extra weight added (0 to start)
++   assist: the weight you log is help (an assisted machine or band); progress means taking help away
+    unit:   'reps' or 'm' (carries are logged in meters)
+ */
+ export const EXERCISES = {
+@@ -56,6 +57,7 @@ export const EXERCISES = {
+   carry: { name: 'Suitcase carry', kind: 'acc', inc: 5, muscles: ['core'], perSide: true, unit: 'm', cue: 'Stay tall; don’t lean.' },
+ 
+   // Alternatives (picked in Plan, or used automatically when your low back is sore).
++  assistpullup: { name: 'Assisted pull-up', kind: 'acc', inc: 10, assist: true, muscles: ['back', 'biceps'], cue: 'Machine or band. The weight is how much help you get: less help is harder.' },
+   latpulldown: { name: 'Lat pulldown', kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Pull to the top of the chest.' },
+   ssbsquat: { name: 'Safety squat bar squat', kind: 'main', inc: 5, muscles: ['quads', 'glutes'], also: ['core', 'lowback'], lowBack: true, cue: 'Brace hard, sit between your hips.' },
+   splitsquat: { name: 'Dumbbell split squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], perSide: true, cue: 'Back-friendly stand-in for the squat.' },
+@@ -68,7 +70,7 @@ export const exName = (id) => (EXERCISES[id] || { name: id }).name;
+ 
+ /** Swaps you can pick in Plan for each exercise in the program. */
+ export const ALTERNATIVES = {
+-  pullup: ['latpulldown'],
++  pullup: ['assistpullup', 'latpulldown'],
+   csrow: ['hexrow', 'dbrow'],
+   frontsquat: ['ssbsquat', 'splitsquat'],
+   bench: ['dbbench'],
+diff --git a/src/views/PlanView.jsx b/src/views/PlanView.jsx
+index d4b3cc3..ed0d172 100644
+--- a/src/views/PlanView.jsx
++++ b/src/views/PlanView.jsx
+@@ -214,7 +214,7 @@ export function ExerciseSheet({ exId, onClose }) {
+                   <b>{fmt(h.date, { month: 'short', day: 'numeric' })}{h.deload ? ' · deload' : ''}</b>
+                   <span className="muted small">{h.item.log.map((l) => (ex.kind === 'jump' ? `${l.reps}${l.h ? `@${l.h}″` : ''}` : `${l.w}×${l.reps}${l.rir != null ? ` (${l.rir})` : ''}`)).join(', ')}</span>
+                 </span>
+-                {best > 0 && !ex.bw && <span className="meta">~{Math.round(best)}</span>}
++                {best > 0 && !ex.bw && !ex.assist && <span className="meta">~{Math.round(best)}</span>}
+               </li>
+             );
+           })}
+diff --git a/src/views/TrainView.jsx b/src/views/TrainView.jsx
+index 4bd306e..ef8ef8f 100644
+--- a/src/views/TrainView.jsx
++++ b/src/views/TrainView.jsx
+@@ -105,7 +105,7 @@ export function rx(it) {
+   const reps = it.kind === 'acc' && it.lo !== it.hi ? `${it.reps}` : `${it.lo}`;
+   const unit = it.unit === 'm' ? ' m' : '';
+   const side = it.perSide ? '/side' : '';
+-  const w = it.kind === 'jump' ? '' : it.bw ? (it.w ? ` · +${it.w} lb` : ' · bodyweight') : it.w != null ? ` · ${it.w} lb` : ' · pick weight';
++  const w = it.kind === 'jump' ? '' : it.bw ? (it.w ? ` · +${it.w} lb` : ' · bodyweight') : it.assist ? (it.w != null ? ` · ${it.w} lb help` : ' · pick help') : it.w != null ? ` · ${it.w} lb` : ' · pick weight';
+   return `${it.sets} × ${reps}${unit}${side}${w}`;
+ }
+ 
+@@ -392,7 +392,7 @@ function ExerciseCard({ it, session, updItem }) {
+               onChange={(e) => updItem(it.key, (x) => ({ ...x, w: e.target.value === '' ? null : Number(e.target.value.replace(/[^\d.]/g, '')) }))}
+               aria-label="Weight in pounds"
+             />
+-            <span>{it.bw ? 'lb added' : 'lb'}{it.perSide && !it.bw ? ' each' : ''}</span>
++            <span>{it.bw ? 'lb added' : it.assist ? 'lb help' : 'lb'}{it.perSide && !it.bw ? ' each' : ''}</span>
+           </label>
+           <button className="icon-btn" aria-label={`${it.inc} lb heavier`} onClick={() => setW((it.w ?? 0) + it.inc)}><Icon name="plus" /></button>
+         </div>
+@@ -445,7 +445,7 @@ function ExerciseCard({ it, session, updItem }) {
+                 <button className="btn" onClick={(e) => logSet(null, e.currentTarget)}>Log set</button>
+               </div>
+             ) : it.w == null && !it.bw ? (
+-              <p className="hint">Pick a starting weight above: one you could do for {it.reps} with {isMain ? '2–3' : '1–2'} reps left.</p>
++              <p className="hint">{it.assist ? `Pick enough help above to get ${it.reps} reps with 1–2 left. Less help is harder.` : `Pick a starting weight above: one you could do for ${it.reps} with ${isMain ? '2–3' : '1–2'} reps left.`}</p>
+             ) : (
+               <>
+                 <p className="rir-q">Reps left in the tank? Tap to log the set.</p>
+-- 
+2.43.0
+
