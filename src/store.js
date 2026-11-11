@@ -251,6 +251,11 @@ export function useSyncStatus() {
 
 let session = null;
 let timer = null;
+const afterSync = new Set();
+/** Runs `fn(session)` after every successful sync (fn returns a promise). */
+export const onSynced = (fn) => afterSync.add(fn);
+/** The signed-in account's id, or null. */
+export const currentUserId = () => (session ? session.user.id : null);
 let syncing = false;
 let again = false;
 
@@ -356,6 +361,8 @@ export async function sync() {
     persist();
     if (changed.size) emit(changed);
     setStatus({ state: 'synced', lastSynced: new Date().toISOString() });
+    // Things read from the other apps (lifestyle+ weigh-ins) refresh on the same rhythm.
+    afterSync.forEach((fn) => fn(session).catch(() => {}));
   } catch (e) {
     setStatus({ state: 'error', error: e.message || String(e) });
   } finally {

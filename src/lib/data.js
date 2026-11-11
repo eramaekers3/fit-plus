@@ -1,17 +1,30 @@
 // Reading and writing fit+ records. Every record lives in the shared store (store.js):
 //   session  a lift day: body check, the prescribed items, every set you logged, back rating, notes
-//   weigh    one weigh-in per day (stable id, so two devices never make duplicates)
+//   weigh    one weigh-in per day, only before you sign in (after that weigh-ins live in lifestyle+, see lifestyle.js)
 //   food     a protein entry: { date, g, label }
 //   cardio   { date, type: zone2 | bball | intervals | walk, min }
 //   vert     a vertical jump test: { date, reach, jumps: [3 touches], best, vertical }
 import { useMemo } from 'react';
-import { useKind, put, get, remove, useSettings, saveSettings, SETTINGS_ID } from '../store.js';
+import { useKind, put, get, remove, useSettings, saveSettings, SETTINGS_ID, currentUserId } from '../store.js';
+import { useLifestyleWeights, putLifestyleWeight } from './lifestyle.js';
 import { idFor, newId } from './ids.js';
 import { todayISO } from './dates.js';
 import { latestWeight, proteinTarget } from './engine.js';
 
 export const useSessions = () => useKind('session');
-export const useWeighs = () => useKind('weigh');
+/**
+ * Weigh-ins: lifestyle+'s (typed there or imported from Apple Health) plus any fit+ saved on this device
+ * before it was linked. lifestyle+ wins when both have the same day.
+ */
+export function useWeighs() {
+  const mine = useKind('weigh');
+  const shared = useLifestyleWeights();
+  return useMemo(() => {
+    if (!shared.length) return mine;
+    const days = new Set(shared.map((w) => w.date));
+    return [...shared, ...mine.filter((w) => !days.has(w.date))];
+  }, [mine, shared]);
+}
 export const useFood = () => useKind('food');
 export const useCardio = () => useKind('cardio');
 export const useVerts = () => useKind('vert');
@@ -31,7 +44,10 @@ export function useProteinTarget() {
 
 /* ---------- Writing ---------- */
 
+/** Signed in: straight into lifestyle+'s weigh-ins. Not signed in (or sample data): kept in fit+ for now. */
 export function logWeight(lb, date = todayISO()) {
+  const s = get(SETTINGS_ID) || {};
+  if (currentUserId() && !s.sample) return putLifestyleWeight(date, lb);
   return put('weigh', { id: idFor(`weigh:${date}`), date, lb: Number(lb) });
 }
 
