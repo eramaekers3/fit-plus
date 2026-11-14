@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { put, patch, remove, useSettings, saveSettings } from '../store.js';
 import { useSessions, useCardio, useOpenSession } from '../lib/data.js';
 import { prescribe, weekInfo, nextDay, prsIn } from '../lib/engine.js';
-import { DAYS, DAY_IDS, MUSCLES, WARMUP, dayLabel, exName } from '../lib/program.js';
+import { EXERCISES, DAYS, DAY_IDS, MUSCLES, WARMUP, dayLabel, exName } from '../lib/program.js';
 import { todayISO, addDays, fmt } from '../lib/dates.js';
 import { newId } from '../lib/ids.js';
 import { startRest, stopRest } from '../lib/rest.js';
@@ -433,7 +433,7 @@ function ExerciseCard({ it, session, updItem }) {
               <span className="set-n">{log.length + 1}</span>
               {it.kind === 'jump' ? (
                 <>
-                  <span className="set-what">{it.reps} jumps, full reset each rep</span>
+                  <span className="set-what">{it.reps} jumps{it.perSide ? ' per leg' : ''}, full reset each rep</span>
                 </>
               ) : (
                 <Stepper label={it.unit === 'm' ? 'm' : 'reps'} value={curReps} step={it.unit === 'm' ? 5 : 1} onChange={setReps} />
@@ -441,7 +441,7 @@ function ExerciseCard({ it, session, updItem }) {
             </div>
             {it.kind === 'jump' ? (
               <div className="jump-log">
-                <input className="input h-in" inputMode="decimal" placeholder="Height (in, optional)" value={h} onChange={(e) => setH(e.target.value.replace(/[^\d.]/g, ''))} />
+                <input className="input h-in" inputMode="decimal" placeholder={`${it.measure || 'Height'} (in, optional)`} value={h} onChange={(e) => setH(e.target.value.replace(/[^\d.]/g, ''))} />
                 <button className="btn" onClick={(e) => logSet(null, e.currentTarget)}>Log set</button>
               </div>
             ) : it.w == null && !it.bw ? (
@@ -562,7 +562,7 @@ export function SummarySheet({ result, onClose }) {
           <>
             <h3 className="sub-h">Personal records</h3>
             <ul className="rows pr-list">
-              {result.prs.map((p) => <li key={p.ex} className="row"><Icon name="star" size={16} /><span className="row-title">{p.text}</span>{p.value && p.ex !== 'boxjump' && p.ex !== 'broadjump' && p.ex !== 'cmj' ? <span className="meta">est. max {p.value}</span> : null}</li>)}
+              {result.prs.map((p) => <li key={p.ex} className="row"><Icon name="star" size={16} /><span className="row-title">{p.text}</span>{p.value && (EXERCISES[p.ex] || {}).kind !== 'jump' ? <span className="meta">est. max {p.value}</span> : null}</li>)}
             </ul>
           </>
         ) : (

@@ -14,7 +14,7 @@ export function seed() {
     ...DEFAULT_SETTINGS,
     sample: true,
     programStart: start,
-    nextWeights: { trapbar: 225, bench: 185, frontsquat: 155, bss: 40, csrow: 50, pallof: 30, hipthrust: 135, dbrow: 60, legpress: 270, inclinedb: 50, hamcurl: 80, calf: 140, slrdl: 40, dbpress: 45, lateral: 20, pushdown: 50, curl: 30, carry: 70 },
+    nextWeights: { trapbar: 225, bench: 185, frontsquat: 155, bss: 40, csrow: 50, pallof: 30, hipthrust: 135, dbrow: 60, legpress: 270, inclinedb: 50, hamcurl: 80, calf: 140, slcalf: 45, slrdl: 40, dbpress: 45, lateral: 20, pushdown: 50, curl: 30, carry: 70 },
   };
   const out = [];
   const sessions = [];

@@ -27,11 +27,14 @@ export const LEG_MUSCLES = MUSCLES.filter((m) => m.legs).map((m) => m.id);
    bw:     bodyweight movement; the weight you log is extra weight added (0 to start)
    assist: the weight you log is help (an assisted machine or band); progress means taking help away
    unit:   'reps' or 'm' (carries are logged in meters)
+   measure: what a jump logs (default 'Height'; 'Distance' for broad jumps and bounds)
 */
 export const EXERCISES = {
   boxjump: { name: 'Box jump', kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Max height; land soft, step down.' },
-  broadjump: { name: 'Broad jump', kind: 'jump', muscles: ['quads', 'glutes', 'hamstrings'], cue: 'Stick the landing.' },
+  broadjump: { name: 'Broad jump', kind: 'jump', measure: 'Distance', muscles: ['quads', 'glutes', 'hamstrings'], cue: 'Stick the landing.' },
   cmj: { name: 'Countermovement jump', kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Arm swing, max height, reset each rep.' },
+  slapproach: { name: 'Single-leg approach jump', kind: 'jump', perSide: true, muscles: ['quads', 'glutes', 'calves'], cue: '2–3 step approach, take off one leg, touch as high as you can. Log touch height minus standing reach.' },
+  bound: { name: 'Single-leg bound', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'hamstrings', 'calves'], cue: 'Hop forward off one leg, sharp takeoff, stick each landing.' },
 
   trapbar: { name: 'Trap bar deadlift', kind: 'main', inc: 5, muscles: ['glutes', 'quads', 'hamstrings'], also: ['back', 'lowback'], lowBack: true, cue: 'Brace, chest up, stop if your back rounds.' },
   bench: { name: 'Bench press', kind: 'main', inc: 5, muscles: ['chest', 'triceps'], also: ['shoulders'], cue: 'Shoulder blades pinned, feet planted.' },
@@ -47,6 +50,7 @@ export const EXERCISES = {
   legpress: { name: 'Leg press', kind: 'acc', inc: 10, muscles: ['quads', 'glutes'], cue: 'Feet high; stop before your hips tuck under.' },
   inclinedb: { name: 'Incline dumbbell press', kind: 'acc', inc: 5, muscles: ['chest', 'shoulders'], also: ['triceps'], cue: 'Low incline, control the bottom.' },
   hamcurl: { name: 'Hamstring curl', kind: 'acc', inc: 5, muscles: ['hamstrings'], cue: 'Slow lowering.' },
+  slcalf: { name: 'Single-leg calf raise', kind: 'acc', inc: 5, muscles: ['calves'], perSide: true, cue: 'Hold a dumbbell, full stretch at the bottom, pause.' },
   calf: { name: 'Standing calf raise', kind: 'acc', inc: 10, muscles: ['calves'], cue: 'Pause at the bottom.' },
 
   slrdl: { name: 'Single-leg dumbbell RDL', kind: 'acc', inc: 5, muscles: ['hamstrings', 'glutes'], perSide: true, cue: 'Hips square, flat back.' },
@@ -76,6 +80,7 @@ export const ALTERNATIVES = {
   bench: ['dbbench'],
   hamcurl: ['seatedcurl'],
   calf: ['smithcalf'],
+  slcalf: ['calf', 'smithcalf'],
   dbrow: ['hexrow', 'csrow'],
   legpress: ['splitsquat'],
 };
@@ -89,7 +94,8 @@ export const DAYS = {
     name: 'Lower power & strength + pull',
     short: 'Lower + pull',
     slots: [
-      { ex: 'boxjump', sets: 4, lo: 3, hi: 3, rest: 90 },
+      { ex: 'boxjump', sets: 3, lo: 3, hi: 3, rest: 90 },
+      { ex: 'slapproach', sets: 3, lo: 3, hi: 3, rest: 60 },
       { ex: 'trapbar', main: true, rest: 210 },
       { ex: 'bss', sets: 3, lo: 6, hi: 8, rest: 120 },
       { ex: 'pullup', sets: 3, lo: 6, hi: 10, rest: 90, ss: 'A' },
@@ -102,13 +108,14 @@ export const DAYS = {
     short: 'Upper + legs',
     slots: [
       { ex: 'broadjump', sets: 3, lo: 3, hi: 3, rest: 90 },
+      { ex: 'bound', sets: 3, lo: 4, hi: 4, rest: 60 },
       { ex: 'bench', main: true, rest: 210 },
       { ex: 'hipthrust', sets: 3, lo: 8, hi: 12, rest: 90, ss: 'A' },
       { ex: 'dbrow', sets: 3, lo: 10, hi: 12, rest: 90, ss: 'A' },
       { ex: 'legpress', sets: 3, lo: 10, hi: 15, rest: 90, ss: 'B' },
       { ex: 'inclinedb', sets: 3, lo: 8, hi: 12, rest: 90, ss: 'B' },
       { ex: 'hamcurl', sets: 3, lo: 8, hi: 12, rest: 60, ss: 'C' },
-      { ex: 'calf', sets: 3, lo: 12, hi: 15, rest: 60, ss: 'C' },
+      { ex: 'slcalf', sets: 3, lo: 10, hi: 12, rest: 60, ss: 'C' },
     ],
   },
   d3: {
@@ -133,7 +140,7 @@ export const dayLabel = (id) => `Day ${id.slice(1)}`;
    Week 0 is the baseline week before week 1 (vertical test). After week 8 the block repeats.
 */
 export const PHASES = {
-  0: { name: 'Baseline', note: 'Test your vertical: standing reach, then best of 3 jumps. Video it.', main: [4, 5] },
+  0: { name: 'Baseline', note: 'Test your vertical before Day 1, right after the normal warm-up: standing reach, then best of 3 jumps. Video it. Note your leg soreness, and test the same way every time.', main: [4, 5] },
   1: { name: 'Build', note: 'Main lifts 4 × 5. Add ~5 lb a week when every rep feels like 2+ in the tank.', main: [4, 5] },
   2: { name: 'Build', note: 'Main lifts 4 × 5.', main: [4, 5] },
   3: { name: 'Build', note: 'Main lifts 4 × 5. Last build week before the deload.', main: [4, 5] },
@@ -141,7 +148,7 @@ export const PHASES = {
   5: { name: 'Strength', note: 'Main lifts 5 × 3, heavier. Hypertrophy work unchanged.', main: [5, 3] },
   6: { name: 'Strength', note: 'Main lifts 5 × 3.', main: [5, 3] },
   7: { name: 'Strength', note: 'Main lifts 5 × 3. Heaviest week.', main: [5, 3] },
-  8: { name: 'Deload + test', note: 'Half the sets; retest your vertical at the end of the week.', main: [5, 3], deload: true, test: true },
+  8: { name: 'Deload + test', note: 'Half the sets; retest your vertical at the end of the week, same warm-up and setup as your baseline.', main: [5, 3], deload: true, test: true },
 };
 
 export const WARMUP = [

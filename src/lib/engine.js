@@ -196,6 +196,7 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
       rest: slot.rest,
       ss: slot.ss || null,
       perSide: !!ex.perSide,
+      measure: ex.measure || 'Height',
       unit: ex.unit || 'reps',
       inc: ex.inc || 5,
       bw: !!ex.bw,
