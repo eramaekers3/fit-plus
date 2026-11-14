@@ -111,7 +111,7 @@ export const STRETCHES = [
 
 const GAP = 5; // seconds to get into each stretch (and to switch sides)
 const TARGET = 300;
-const MAX = 345;
+const MAX = 390; // a little over 5 minutes is fine (the hamstring stretch is always in)
 
 /** How long a routine takes, getting into position included. */
 export const stretchSecs = (s) => (s.sides ? s.secs * 2 + GAP : s.secs) + GAP;
@@ -224,6 +224,8 @@ export function buildStretch({ date, sessions = [], cardio = [], health = [] }) 
     // Diminishing returns: a covered muscle counts for less next time.
     for (const [m, w] of Object.entries(best.t)) left[m] = (left[m] || 0) * (1 - 0.7 * w);
   };
+  // Every night gets the lying hamstring stretch.
+  take(STRETCHES.find((x) => x.id === 'hamstring'));
   // A real upper-body day gets at least one upper stretch, even when the legs are the bigger load.
   const upper = UPPER.filter((m) => load[m] >= 1.5).sort((a, b) => load[b] - load[a])[0];
   if (upper) take(STRETCHES.filter((s) => (s.t[upper] || 0) >= 0.7).reduce((a, b) => (score(b) > score(a) ? b : a)));
