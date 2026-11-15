@@ -97,6 +97,9 @@ function useVisibleArea() {
   return area;
 }
 
+// How many sheets are open; the page stays held until the last one closes.
+let openSheets = 0;
+
 export function Sheet({ title, onClose, children, top = false }) {
   const area = useVisibleArea();
   const closeRef = useRef(onClose);
@@ -114,15 +117,17 @@ export function Sheet({ title, onClose, children, top = false }) {
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && closeRef.current();
     window.addEventListener('keydown', onKey);
-    // Pin the page in place while a sheet is open, so iPhone can't scroll it underneath.
-    const y = window.scrollY;
-    const b = document.body.style;
-    const prev = { position: b.position, top: b.top, width: b.width, overflow: b.overflow };
-    Object.assign(b, { position: 'fixed', top: `-${y}px`, width: '100%', overflow: 'hidden' });
+    // Hold the page still while a sheet is open, so iPhone can't scroll it underneath.
+    const page = document.querySelector('.scroller');
+    const y = page ? page.scrollTop : 0;
+    openSheets++;
+    if (page) page.style.overflowY = 'hidden';
     return () => {
       window.removeEventListener('keydown', onKey);
-      Object.assign(b, prev);
-      window.scrollTo(0, y);
+      if (--openSheets === 0 && page) {
+        page.style.overflowY = '';
+        page.scrollTop = y;
+      }
     };
   }, []);
   return createPortal(

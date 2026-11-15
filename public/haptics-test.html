@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>fit+ haptics test</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #262624; color: #f2efe8; font: 16px/1.45 -apple-system, system-ui, sans-serif; padding: calc(20px + env(safe-area-inset-top)) 18px 60px; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  p.note { color: #a8a49a; margin: 0 0 18px; font-size: 14px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 14px; margin-bottom: 12px; background: #31302d; border: 1px solid #45433e; border-radius: 16px; }
+  .tag { flex: none; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; background: #45433e; }
+  .what { flex: 1; min-width: 0; }
+  .what b { display: block; }
+  .what small { color: #a8a49a; }
+  .count { color: #a8a49a; font-size: 13px; min-width: 52px; text-align: right; }
+  .btn { position: relative; flex: none; border: 0; border-radius: 12px; padding: 12px 16px; font: 700 15px -apple-system, system-ui; background: #f2c14e; color: #2a2208; -webkit-tap-highlight-color: transparent; cursor: pointer; display: inline-block; }
+  .btn:active { transform: translateY(2px); }
+  /* Real switch laid over a button: invisible, but it's what the finger actually touches. */
+  .over { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0.001; }
+  .hide { position: absolute; opacity: 0.001; width: 1px; height: 1px; pointer-events: none; }
+  #ua { margin-top: 24px; color: #6f6b62; font-size: 12px; word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>Haptics test</h1>
+<p class="note">Tap each button once or twice. Write down which letters you <b>feel</b> a tap on. The counter just shows the tap registered. (Settings → Sounds &amp; Haptics → System Haptics must be on.)</p>
+
+<div class="row"><span class="tag">A</span><div class="what"><b>A real switch</b><small>Tap the switch itself</small></div>
+  <input type="checkbox" switch id="a" /><span class="count" id="ca">0</span></div>
+
+<div class="row"><span class="tag">B</span><div class="what"><b>Hidden switch, code-clicked</b><small>What fit+ does today</small></div>
+  <button class="btn" id="b">Tap</button><span class="count" id="cb">0</span></div>
+
+<div class="row"><span class="tag">C</span><div class="what"><b>On-page switch, code-clicked</b><small>Switch is rendered, just see-through</small></div>
+  <button class="btn" id="c">Tap</button><input type="checkbox" switch class="hide" id="cs" tabindex="-1" /><span class="count" id="cc">0</span></div>
+
+<div class="row"><span class="tag">D</span><div class="what"><b>Switch laid over a button</b><small>Your finger lands on an invisible switch</small></div>
+  <span class="btn" id="d">Tap<input type="checkbox" switch class="over" id="ds" /></span><span class="count" id="cd">0</span></div>
+
+<div class="row"><span class="tag">E</span><div class="what"><b>Button that's a switch label</b><small>Tapping the label flips a hidden switch</small></div>
+  <label class="btn" id="e">Tap<input type="checkbox" switch class="hide" tabindex="-1" /></label><span class="count" id="ce">0</span></div>
+
+<div class="row"><span class="tag">F</span><div class="what"><b>Switch slipped under the finger</b><small>Appears when you touch down</small></div>
+  <button class="btn" id="f">Tap</button><span class="count" id="cf">0</span></div>
+
+<div class="row"><span class="tag">G</span><div class="what"><b>Real switch, see-through</b><small>Like A, but invisible (tap the dashed box)</small></div>
+  <span style="position:relative;display:inline-block;width:64px;height:36px;border:1.5px dashed #6f6b62;border-radius:10px"><input type="checkbox" switch class="over" id="g" /></span><span class="count" id="cg">0</span></div>
+
+<div id="ua"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const bump = (id) => { const el = $(id); el.textContent = String(+el.textContent + 1); };
+  $('ua').textContent = navigator.userAgent + (navigator.standalone ? ' · home-screen app' : ' · Safari');
+
+  // A, G: real switches
+  $('a').addEventListener('change', () => bump('ca'));
+  $('g').addEventListener('change', () => bump('cg'));
+
+  // B: what fit+ does today
+  let n = 0;
+  function labelTap() {
+    const id = 'hx' + ++n;
+    const input = document.createElement('input');
+    input.type = 'checkbox'; input.setAttribute('switch', ''); input.id = id;
+    const label = document.createElement('label');
+    label.htmlFor = id; label.style.display = 'none';
+    label.appendChild(input);
+    document.head.appendChild(label);
+    label.click();
+    label.remove();
+  }
+  $('b').addEventListener('click', () => { labelTap(); bump('cb'); });
+
+  // C: rendered switch, clicked from code
+  $('c').addEventListener('click', () => { $('cs').click(); bump('cc'); });
+
+  // D: invisible switch on top of the button
+  $('ds').addEventListener('change', () => bump('cd'));
+
+  // E: the button is the switch's label
+  $('e').addEventListener('click', (ev) => { if (ev.target === $('e')) bump('ce'); });
+
+  // F: on touch-down, put an invisible switch exactly under the finger; the tap lands on it,
+  // then we pass the click on to the button.
+  let slip = null;
+  $('f').addEventListener('touchstart', (ev) => {
+    const t = ev.touches[0];
+    slip && slip.remove();
+    slip = document.createElement('input');
+    slip.type = 'checkbox'; slip.setAttribute('switch', '');
+    Object.assign(slip.style, { position: 'fixed', left: t.clientX - 30 + 'px', top: t.clientY - 30 + 'px', width: '60px', height: '60px', margin: 0, opacity: '0.001', zIndex: 9999 });
+    slip.addEventListener('click', () => { bump('cf'); setTimeout(() => slip && slip.remove(), 0); });
+    document.body.appendChild(slip);
+    setTimeout(() => slip && slip.remove(), 800);
+  }, { passive: true });
+</script>
+</body>
+</html>

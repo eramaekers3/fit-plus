@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from './ui.jsx';
 import { haptic } from '../lib/haptics.js';
+import { scrollByY } from '../lib/scroller.js';
 
 /**
  * A vertical list you can reorder by dragging each row's grip (arrow keys work on the grip too).
@@ -79,8 +80,8 @@ export default function SortableList({ items, onReorder, className = 'rows', row
     });
     if (target !== -1) move(drag.id, target);
     setDrag({ ...drag, y: e.clientY });
-    if (e.clientY < 90) window.scrollBy(0, -10);
-    else if (e.clientY > window.innerHeight - 150) window.scrollBy(0, 10);
+    if (e.clientY < 90) scrollByY(-10);
+    else if (e.clientY > window.innerHeight - 150) scrollByY(10);
   };
 
   const finish = (next) => onReorder(next.map((id) => byId[id]).filter(Boolean));

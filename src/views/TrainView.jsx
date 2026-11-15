@@ -7,6 +7,7 @@ import { todayISO, addDays, fmt } from '../lib/dates.js';
 import { newId } from '../lib/ids.js';
 import { startRest, stopRest } from '../lib/rest.js';
 import { haptic } from '../lib/haptics.js';
+import { scrollToTop } from '../lib/scroller.js';
 import { cheer } from '../lib/cheer.js';
 import { toast } from '../lib/toast.js';
 import { open } from '../lib/open.js';
@@ -136,7 +137,7 @@ function BodyCheck({ session }) {
       startedAt: new Date().toISOString(),
     });
     haptic('success');
-    window.scrollTo(0, 0);
+    scrollToTop();
   };
 
   return (

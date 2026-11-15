@@ -7,6 +7,7 @@ import { useSwipe } from './lib/swipe.js';
 import { useOpenSheet, closeSheet, quickLog } from './lib/open.js';
 import { useRest, addRest, stopRest, clock } from './lib/rest.js';
 import { useSessions } from './lib/data.js';
+import { scrollToTop } from './lib/scroller.js';
 import TodayView from './views/TodayView.jsx';
 import TrainView, { SessionSheet, SummarySheet } from './views/TrainView.jsx';
 import FuelView from './views/FuelView.jsx';
@@ -61,7 +62,7 @@ export default function App() {
       setEnter(Math.sign(idx(next) - idx(tabRef.current)));
       tabRef.current = next;
       setTab(next);
-      window.scrollTo(0, 0);
+      scrollToTop();
     };
     if (window.location.hash === '#protein') onHash();
     window.addEventListener('hashchange', onHash);
@@ -77,12 +78,12 @@ export default function App() {
   }, [tab]);
 
   const go = (id) => {
-    if (id === tab) return window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (id === tab) return scrollToTop(true);
     const idx = (x) => TABS.findIndex((t) => t.id === x);
     setEnter(Math.sign(idx(id) - idx(tabRef.current)));
     tabRef.current = id;
     setTab(id);
-    window.scrollTo(0, 0);
+    scrollToTop();
     history.pushState(null, '', `#${id}`);
   };
   useEffect(() => {
@@ -111,6 +112,8 @@ export default function App() {
 
   return (
     <div className={`app${settling ? ' settling' : ''}`}>
+      <div className="scroller">
+      <div className="app-col">
       <header className="topbar">
         <div className="brand" aria-label="fit+">
           <span aria-hidden="true">fit</span>
@@ -136,6 +139,8 @@ export default function App() {
         <main className={`view${enter ? (enter > 0 ? ' enter-next' : ' enter-prev') : ''}`} key={tab}>
           <View />
         </main>
+      </div>
+      </div>
       </div>
 
       <RestBar />
