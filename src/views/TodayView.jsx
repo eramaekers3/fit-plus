@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSettings, saveSettings } from '../store.js';
+import { useSettings, saveSettings, get, put } from '../store.js';
+import { idFor } from '../lib/ids.js';
 import { useSessions, useCardio, useFood, useWeighs, useVerts, useOpenSession, useProteinTarget, logProtein } from '../lib/data.js';
 import { prescribe, weekInfo, nextDay, weekSummary, weightTrend, avg7 } from '../lib/engine.js';
 import { DAYS, dayLabel } from '../lib/program.js';
@@ -177,6 +178,30 @@ function WeekCard() {
 const ICON = { lift: 'train', zone2: 'heart', walk: 'heart', bball: 'ball', intervals: 'bolt', rest: 'moon' };
 const hm = minToLabel;
 
+/**
+ * Keeps a copy of the week's plan in your data, so the server knows when you're lifting (the
+ * lift-day notifications). Only written when it actually changes. Today's lift keeps the time it
+ * was given, as long as that time is still ahead, so the reminder doesn't drift.
+ */
+function savePlanForReminders(p, today, now, s) {
+  if (s.sample || !p.days.length) return;
+  const ws = p.days[0].date;
+  const id = idFor(`weekplan:${ws}`);
+  const prev = get(id);
+  const days = {};
+  for (const d of p.days) {
+    if (d.past) continue;
+    let items = d.plan.filter((x) => x.type !== 'rest').map(({ type, label, start, end, day }) => ({ type, label, start: start ?? null, end: end ?? null, day: day || null }));
+    if (d.date === today && prev && prev.days && prev.days[today]) {
+      const kept = prev.days[today].find((x) => x.type === 'lift');
+      items = items.map((x) => (x.type === 'lift' && kept && kept.day === x.day && kept.start != null && kept.start > now ? { ...x, start: kept.start, end: kept.end } : x));
+    }
+    days[d.date] = items;
+  }
+  if (prev && JSON.stringify(prev.days) === JSON.stringify(days)) return;
+  put('weekplan', { id, ws, days });
+}
+
 /** Each day of the week: what's done, and what's planned and when (around lifestyle+'s calendar). */
 function WeekPlan() {
   const s = useSettings();
@@ -190,6 +215,7 @@ function WeekPlan() {
     return () => clearInterval(t);
   }, []);
   const p = useMemo(() => planWeek({ today, now, busy, sessions, cardio, settings: s }), [today, now, busy, sessions, cardio, s]);
+  useEffect(() => savePlanForReminders(p, today, now, s), [p, today, now, s]);
   const source = busy.loaded
     ? 'Times fit around your lifestyle+ calendar and blocks.'
     : busy.calendars

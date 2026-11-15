@@ -6,7 +6,9 @@ import {
   useSettings, saveSettings, useSyncStatus, sync, signIn, signUp, signOut, clearSample, eraseAll, recentlyDeleted, putMany,
 } from '../store.js';
 import { toast } from '../lib/toast.js';
-import { weekStart } from '../lib/dates.js';
+import { weekStart, minToLabel } from '../lib/dates.js';
+import { enablePush, disablePush, sendTestPush, usePushState } from '../lib/push.js';
+import { DEFAULT_NOTIFY } from '../../api/_push-core.js';
 import { settingsVersions, recentChanges, restoreVersion, settingsSummary, kindName, labelOf, exportBackup } from '../lib/history.js';
 
 export default function SettingsSheet({ onClose }) {
@@ -40,6 +42,8 @@ export default function SettingsSheet({ onClose }) {
           <AuthForm />
         )}
       </section>
+
+      <NotifySection signedIn={!!st.email} />
 
       <LookSection />
 
@@ -163,6 +167,105 @@ function LookSection() {
 }
 
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const DOW_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const timeOptions = (fromH, toH) => Array.from({ length: (toH - fromH) * 4 + 1 }, (_, i) => fromH * 60 + i * 15);
+// A real iPhone switch: it taps when you flip it.
+const sw = { switch: '' };
+
+function NotifySection({ signedIn }) {
+  const s = useSettings();
+  const n = { ...DEFAULT_NOTIFY, ...(s.notify || {}) };
+  const setN = (changes) => saveSettings({ notify: { ...n, ...changes } });
+  const [state, refresh] = usePushState();
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+
+  const run = (fn, done) => async () => {
+    setBusy(true);
+    setErr('');
+    try {
+      await fn();
+      if (done) toast(done);
+    } catch (e) {
+      setErr(e.message);
+    }
+    setBusy(false);
+    refresh();
+  };
+  const time = (key, label, from, to) => (
+    <select className="input" value={n[key]} onChange={(e) => setN({ [key]: +e.target.value })} aria-label={label}>
+      {timeOptions(from, to).map((m) => <option key={m} value={m}>{minToLabel(m)}</option>)}
+    </select>
+  );
+  const day = (key, label) => (
+    <select className="input" value={n[key]} onChange={(e) => setN({ [key]: +e.target.value })} aria-label={label}>
+      {DOW_LONG.map((d, i) => <option key={d} value={i + 1}>{d}s</option>)}
+    </select>
+  );
+
+  return (
+    <section className="set-sec">
+      <h3>Notifications</h3>
+      {state === 'install' && (
+        <p className="muted small">On iPhone, notifications only work from the Home Screen app. In Safari, tap <b>Share → Add to Home Screen</b>, open fit+ from there, then come back here.</p>
+      )}
+      {state === 'unsupported' && <p className="muted small">This browser can’t receive notifications.</p>}
+      {state === 'blocked' && <p className="muted small">Notifications are blocked for fit+. Turn them on in iPhone <b>Settings → Notifications → fit+</b>, then reopen the app.</p>}
+      {(state === 'off' || state === 'on') && !signedIn && <p className="muted small">Sign in above first, so notifications can reach this phone.</p>}
+      {(state === 'off' || state === 'on') && signedIn && (
+        <div className="btn-row" style={{ marginTop: 0 }}>
+          {state === 'off' ? (
+            <button className="btn" onClick={run(enablePush, 'Notifications on for this phone')} disabled={busy}>Turn on for this phone</button>
+          ) : (
+            <>
+              <button className="btn ghost" onClick={run(sendTestPush, 'Test sent')} disabled={busy}>Send a test</button>
+              <button className="btn ghost" onClick={run(disablePush, 'Notifications off for this phone')} disabled={busy}>Turn off</button>
+            </>
+          )}
+        </div>
+      )}
+      {err && <p className="err">{err}</p>}
+
+      <div className="toggles">
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.rest} onChange={(e) => setN({ rest: e.target.checked })} />
+          <span>When rest is up (buzzes even with the phone locked)</span>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.sound} onChange={(e) => setN({ sound: e.target.checked })} />
+          <span>Chime in the app when rest is up</span>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.lift} onChange={(e) => setN({ lift: e.target.checked })} />
+          <span>Lift-day morning reminder</span>
+          {time('liftAt', 'Lift-day reminder time', 5, 11)}
+        </label>
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.liftLead} disabled={!n.lift} onChange={(e) => setN({ liftLead: e.target.checked })} />
+          <span>And 30 min before the planned lift</span>
+        </label>
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.stretch} onChange={(e) => setN({ stretch: e.target.checked })} />
+          <span>Nightly stretch (skipped once it’s done)</span>
+          {time('stretchAt', 'Stretch reminder time', 19, 23)}
+        </label>
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.weigh} onChange={(e) => setN({ weigh: e.target.checked })} />
+          <span>Weekly weigh-in</span>
+          {day('weighDay', 'Weigh-in day')}
+          {time('weighAt', 'Weigh-in time', 5, 11)}
+        </label>
+        <label className="toggle">
+          <input type="checkbox" {...sw} checked={n.cardio} onChange={(e) => setN({ cardio: e.target.checked })} />
+          <span>Zone 2 check-in if you’re behind for the week</span>
+          {day('cardioDay', 'Zone 2 check-in day')}
+          {time('cardioAt', 'Zone 2 check-in time', 12, 22)}
+        </label>
+      </div>
+    </section>
+  );
+}
+
 function DaysPick({ label, k, hint }) {
   const s = useSettings();
   const on = s[k] || [];

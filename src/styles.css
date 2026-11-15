@@ -1405,3 +1405,4 @@ p.banner { margin: 0; }
 }
 .hx input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0.001; pointer-events: none; }
 :disabled > .hx, [aria-disabled='true'] > .hx { display: none; }
+.toggle input[switch] { width: auto; height: auto; }

@@ -20,7 +20,7 @@ export const settingsVersions = () =>
 
 /** The latest changes to everything else, newest first. */
 export const recentChanges = () =>
-  rows(supabase.from('fit_record_history').select(COLS).neq('kind', 'settings').order('replaced_at', { ascending: false }).limit(80));
+  rows(supabase.from('fit_record_history').select(COLS).not('kind', 'in', '(settings,weekplan)').order('replaced_at', { ascending: false }).limit(80));
 
 /** Puts a version back. It syncs to your other devices like any other edit. */
 export const restoreVersion = (v) => put(v.kind, { ...v.data, id: v.record_id || v.id });

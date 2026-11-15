@@ -8,6 +8,7 @@ import { useOpenSheet, closeSheet, quickLog } from './lib/open.js';
 import { useRest, addRest, stopRest, clock } from './lib/rest.js';
 import { useSessions } from './lib/data.js';
 import { scrollToTop } from './lib/scroller.js';
+import { usePushKeepAlive } from './lib/push.js';
 import TodayView from './views/TodayView.jsx';
 import TrainView, { SessionSheet, SummarySheet } from './views/TrainView.jsx';
 import FuelView from './views/FuelView.jsx';
@@ -40,6 +41,7 @@ export default function App() {
   const [settings, setSettings] = useState(false);
   const s = useSettings();
   const sync = useSyncStatus();
+  usePushKeepAlive(!!sync.email);
   const sheet = useOpenSheet();
   const sessions = useSessions();
   useTheme();
@@ -52,10 +54,11 @@ export default function App() {
 
   useEffect(() => {
     const onHash = () => {
-      // Home Screen shortcuts: …/#protein opens the protein log.
-      if (window.location.hash === '#protein') {
+      // Home Screen shortcuts and notifications: …/#protein opens the protein log, …/#weigh the weigh-in.
+      const quick = { '#protein': 'protein', '#weigh': 'weight' }[window.location.hash];
+      if (quick) {
         history.replaceState(null, '', `#${tabRef.current}`);
-        return quickLog('protein');
+        return quickLog(quick);
       }
       const next = tabFromHash();
       const idx = (id) => TABS.findIndex((t) => t.id === id);
@@ -64,7 +67,7 @@ export default function App() {
       setTab(next);
       scrollToTop();
     };
-    if (window.location.hash === '#protein') onHash();
+    if (window.location.hash === '#protein' || window.location.hash === '#weigh') onHash();
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);

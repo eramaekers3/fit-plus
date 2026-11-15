@@ -1,8 +1,13 @@
 // The rest timer. One at a time, kept in memory and in localStorage, so it survives the app going to
-// the background (it counts from a timestamp, not ticks). When it runs out you get a buzz and a toast.
+// the background (it counts from a timestamp, not ticks). When it runs out: a chime and a toast in
+// the app, and (with notifications on) a push from the server, which buzzes the phone even when
+// it's locked. The push is set when the timer starts and moved or cancelled with it.
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { haptic } from './haptics.js';
 import { toast } from './toast.js';
+import { chime } from './chime.js';
+import { setPushTimer, clearPushTimer } from './push.js';
+import { get, SETTINGS_ID } from '../store.js';
 
 const KEY = 'fitplus.rest';
 let timer = read(); // { ends: ms, total: s, label, next } | null
@@ -26,12 +31,26 @@ function save() {
   }
 }
 
+const notify = () => ({ rest: true, sound: true, ...((get(SETTINGS_ID) || {}).notify || {}) });
+
+/** Tells the server when this rest ends (or that it was skipped). */
+function syncPush() {
+  if (timer && notify().rest) {
+    setPushTimer('rest', timer.ends, {
+      title: 'Rest’s up',
+      body: timer.next ? `Next: ${timer.next}` : 'Time for the next set.',
+      url: '/#train',
+    });
+  } else clearPushTimer('rest');
+}
+
 let alarm = null;
 function arm() {
   clearTimeout(alarm);
   if (!timer) return;
   alarm = setTimeout(() => {
     haptic('big');
+    if (notify().sound && document.visibilityState === 'visible') chime();
     toast(timer && timer.next ? `Rest’s up · ${timer.next}` : 'Rest’s up');
     timer = null;
     save();
@@ -45,6 +64,7 @@ export function startRest(seconds, label = 'Rest', next = '') {
   timer = { ends: Date.now() + seconds * 1000, total: seconds, label, next };
   save();
   arm();
+  syncPush();
   emit();
 }
 export function addRest(seconds) {
@@ -52,12 +72,14 @@ export function addRest(seconds) {
   timer = { ...timer, ends: timer.ends + seconds * 1000, total: timer.total + seconds };
   save();
   arm();
+  syncPush();
   emit();
 }
 export function stopRest() {
   timer = null;
   clearTimeout(alarm);
   save();
+  syncPush();
   emit();
 }
 
