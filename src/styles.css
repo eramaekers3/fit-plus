@@ -32,11 +32,10 @@
 }
 
 * { box-sizing: border-box; }
-html { background: var(--bg); -webkit-text-size-adjust: 100%; overflow: hidden; height: 100%; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; overflow-x: clip; }
 body {
   margin: 0;
-  height: 100%;
-  overflow: hidden;
+  min-height: 100%;
   background: var(--bg);
   color: var(--ink);
   font: 15px/1.45 var(--body);
@@ -63,13 +62,22 @@ code { font-size: 0.92em; background: var(--raised); padding: 1px 5px; border-ra
 
 
 /* ---------- Shell ---------- */
-.app { min-height: 100%; }
-/* The page scrolls inside this full-screen box, never the window. When the window scrolls,
-   iPhone moves position: fixed things (tab bar, + button) along with Safari's toolbar and the
-   bounce at the ends; with the window held still they stay exactly where they are. */
+.app {
+  position: relative;
+  /* A hair taller than the screen. iPhone home-screen apps only lay the page out to the very
+     bottom of the screen when the document can scroll; otherwise they stop above the home
+     indicator and leave a dead band there. */
+  min-height: calc(100vh + 1px);
+  min-height: calc(100lvh + 1px);
+}
+/* The page scrolls inside this full-screen box rather than the window. When the window
+   scrolls, iPhone slides position: fixed things (tab bar, + button) around with it; with the
+   window held still they stay exactly where they are. */
 .scroller {
-  position: fixed;
-  inset: 0;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 100vh;
+  height: 100lvh;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: none;
