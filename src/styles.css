@@ -1386,3 +1386,14 @@ p.banner { margin: 0; }
 .st-finish { padding-top: 30px; }
 .st-finish .icon { color: var(--lilac); }
 .st-finish h2 { margin: 0; font: var(--display-weight) 36px/1.05 var(--display); letter-spacing: var(--display-tracking); }
+
+/* ---------- iPhone haptics (see lib/haptics.js) ----------
+   An invisible label over each button, wrapping a hidden switch: the finger flips the switch
+   (that's what makes the iPhone tap) and the click carries on to the button. */
+.hx-host { position: relative; }
+.hx {
+  position: absolute; inset: 0; z-index: 5; margin: 0; padding: 0;
+  border-radius: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.hx input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0.001; pointer-events: none; }
+:disabled > .hx, [aria-disabled='true'] > .hx { display: none; }
