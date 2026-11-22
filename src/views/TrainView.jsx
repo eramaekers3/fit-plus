@@ -23,7 +23,7 @@ export default function TrainView() {
 
 /* ---------- Choosing a day ---------- */
 
-export function startSession(day, sessions, cardio) {
+export function startSession(day, sessions, cardio, home = false) {
   const date = todayISO();
   const yesterday = addDays(date, -1);
   const bball = cardio.some((c) => c.date === yesterday && c.type === 'bball');
@@ -33,6 +33,7 @@ export function startSession(day, sessions, cardio) {
     day,
     date,
     status: 'check',
+    home: !!home,
     check: { sore: {}, bball, sleep: '' },
     minimal: false,
     items: [],
@@ -52,7 +53,8 @@ function Picker() {
   const nd = useMemo(() => nextDay(sessions, today), [sessions, today]);
   const [pick, setPick] = useState(null);
   const day = pick || nd.next || 'd1';
-  const preview = useMemo(() => prescribe({ day, date: today, sessions, settings: s }), [day, today, sessions, s]);
+  const home = s.where === 'home';
+  const preview = useMemo(() => prescribe({ day, date: today, sessions, settings: s, home }), [day, today, sessions, s, home]);
 
   return (
     <>
@@ -77,9 +79,17 @@ function Picker() {
         ))}
       </div>
 
+      <div className="seg where-seg" role="group" aria-label="Where you're lifting">
+        {[['gym', 'Gym'], ['home', 'Home']].map(([id, label]) => (
+          <button key={id} aria-pressed={(s.where || 'gym') === id} onClick={() => { saveSettings({ where: id }); haptic('tick'); }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
       <section className="card">
         <div className="card-head">
-          <h2>{DAYS[day].short}</h2>
+          <h2>{DAYS[day].short}{home ? ' · home' : ''}</h2>
           <span className="meta">~60 min</span>
         </div>
         <ul className="rows preview-rows">
@@ -91,9 +101,9 @@ function Picker() {
             </li>
           ))}
         </ul>
-        {preview.notes.filter((n) => n.kind === 'week').map((n) => <p key={n.text} className="muted small">{n.text}</p>)}
-        <button className="btn wide big-btn" onClick={() => startSession(day, sessions, cardio)}>
-          Start {dayLabel(day)}
+        {preview.notes.filter((n) => n.kind === 'week' || n.kind === 'home').map((n) => <p key={n.text} className="muted small">{n.text}</p>)}
+        <button className="btn wide big-btn" onClick={() => startSession(day, sessions, cardio, home)}>
+          Start {dayLabel(day)}{home ? ' at home' : ''}
         </button>
         <p className="muted small center-text">First you’ll rate soreness, sleep and basketball. The workout adjusts to it.</p>
       </section>
@@ -121,8 +131,8 @@ function BodyCheck({ session }) {
   const set = (changes) => patch(session.id, { check: { ...check, ...changes } });
   const setMinimal = (v) => patch(session.id, { minimal: v });
   const plan = useMemo(
-    () => prescribe({ day: session.day, date: session.date, sessions, settings: s, check, minimal: session.minimal }),
-    [session.day, session.date, session.minimal, sessions, s, check]
+    () => prescribe({ day: session.day, date: session.date, sessions, settings: s, check, minimal: session.minimal, home: !!session.home }),
+    [session.day, session.date, session.minimal, session.home, sessions, s, check]
   );
   const changed = plan.items.filter((it) => it.why.some((w) => !w.startsWith('+') && !w.startsWith('Same') && !w.startsWith('New') && !w.startsWith('Weight set') && !w.startsWith('First') && !w.startsWith('Missed')) || it.skipped);
 
@@ -143,7 +153,7 @@ function BodyCheck({ session }) {
   return (
     <>
       <header className="page-head">
-        <div className="eyebrow">{dayLabel(session.day)} · body check</div>
+        <div className="eyebrow">{dayLabel(session.day)}{session.home ? ' · home' : ''} · body check</div>
         <h1>How do you feel?</h1>
         <p>Tap a muscle to rate it. Soreness changes today’s sets, not your progression.</p>
       </header>
@@ -240,7 +250,7 @@ function Workout({ session }) {
     <>
       <header className="dayhead">
         <div>
-          <div className="eyebrow">{session.week === 0 ? 'Week 0' : session.week ? `Week ${session.week}` : ''}{session.deload ? ' · deload' : ''}{session.minimal ? ' · minimum' : ''}</div>
+          <div className="eyebrow">{session.week === 0 ? 'Week 0' : session.week ? `Week ${session.week}` : ''}{session.deload ? ' · deload' : ''}{session.minimal ? ' · minimum' : ''}{session.home ? ' · home' : ''}</div>
           <h1>
             {dayLabel(session.day)}
             <span>{DAYS[session.day].name}</span>

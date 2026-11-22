@@ -94,7 +94,7 @@ function WorkoutCard() {
   const today = todayISO();
   const nd = useMemo(() => nextDay(sessions, today), [sessions, today]);
   const todays = sessions.find((x) => x.date === today && x.status === 'done');
-  const preview = useMemo(() => (nd.next ? prescribe({ day: nd.next, date: today, sessions, settings: s }) : null), [nd.next, today, sessions, s]);
+  const preview = useMemo(() => (nd.next ? prescribe({ day: nd.next, date: today, sessions, settings: s, home: s.where === 'home' }) : null), [nd.next, today, sessions, s]);
 
   if (open) {
     const sets = (open.items || []).reduce((t, it) => t + (it.log || []).length, 0);
@@ -128,7 +128,7 @@ function WorkoutCard() {
       </section>
     );
   }
-  const main = preview.items.find((it) => it.kind === 'main') || preview.items[1];
+  const main = preview.items.find((it) => it.kind === 'main') || preview.items.find((it, i) => DAYS[nd.next].slots[i].main) || preview.items[1];
   return (
     <section className="card workout-card">
       <div className="card-head">
@@ -139,7 +139,7 @@ function WorkoutCard() {
       {main && <p className="main-lift"><Icon name="train" size={16} /> {main.name}: <b>{rx(main)}</b></p>}
       <p className="muted small">{preview.items.map((it) => it.name).slice(2).join(' · ')}</p>
       {nd.liftedYesterday && <p className="muted small">You lifted yesterday, so a zone 2 day would be better if you can.</p>}
-      <button className="btn wide" onClick={() => { startSession(nd.next, sessions, cardio); goTab('train'); }}>Start {dayLabel(nd.next)}</button>
+      <button className="btn wide" onClick={() => { startSession(nd.next, sessions, cardio, s.where === 'home'); goTab('train'); }}>Start {dayLabel(nd.next)}{s.where === 'home' ? ' at home' : ''}</button>
     </section>
   );
 }

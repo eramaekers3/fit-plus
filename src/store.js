@@ -179,6 +179,7 @@ export const DEFAULT_SETTINGS = {
   liftDays: [1, 3, 4, 5], // days you can lift (1 = Mon … 7 = Sun), used by the week plan
   bballDays: [6], // days you usually play basketball
   swaps: {}, // { exerciseId: alternativeId } chosen in Plan
+  where: 'gym', // 'gym' (campus rec) or 'home' (home gym); picked on Train, used for the next workout you start
   nextWeights: {}, // { exerciseId: lb } a weight you set by hand for the next time it comes up
   // Saved meals for one-tap protein. Swap these for your usual campus orders.
   meals: [

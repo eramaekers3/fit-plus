@@ -15,6 +15,10 @@ reps and rest from what you logged last time, then adjusts for how you feel toda
   7 days, weight with a 7-day average and whether you're gaining at the right pace.
 - **Progress** — estimated max on each main lift, weekly sets per muscle against Galpin's 10–20, zone 2
   per week, vertical jump tests, back ratings and what came before flare-ups, records, history.
+- **Gym / Home** — a switch on Train. Home swaps in versions for the home gym (dumbbells, the Body-Solid
+  cable machine, bench, plyo box, stability ball): dumbbell bench, goblet squats, dumbbell RDLs, ball
+  hamstring curls, and forward/sideways jumps instead of box or max-height jumps (low ceiling). Home machine
+  lifts track their own weights. The list is `HOME` in `src/lib/program.js`.
 - **Plan** — the 8 weeks, each day's exercises with next time's weights, swaps (lat pulldown for pull-ups,
   safety bar for front squat…), setting a weight by hand, the warm-up and the rules.
 - **+ button** — log protein, a weigh-in or cardio.

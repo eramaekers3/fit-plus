@@ -7,7 +7,7 @@
 //   weekSummary   lifts done, zone 2 minutes, hard sessions, sets per muscle
 //   e1rm, prsIn   estimated max and personal records
 
-import { EXERCISES, DAYS, DAY_IDS, PHASES, MUSCLES, LEG_MUSCLES, muscleName, exName, CARDIO_TYPES } from './program.js';
+import { EXERCISES, HOME, DAYS, DAY_IDS, PHASES, MUSCLES, LEG_MUSCLES, muscleName, exName, CARDIO_TYPES } from './program.js';
 import { parse, addDays, weekStart } from './dates.js';
 
 /* ---------- Small helpers ---------- */
@@ -70,11 +70,12 @@ const bestE1 = (item) => Math.max(0, ...(item.log || []).map((x) => e1rm(Number(
  *   settings: app settings (programStart, swaps, nextWeights)
  *   check:    { sore: { muscleId: 0-3 }, bball: bool, sleep: hours|null }
  *   minimal:  true for the short version (jumps + main lift)
+ *   home:     true for the at-home version (home gym equipment; see HOME in program.js)
  *
  * Returns { week, block, phase, deload, items: [...], notes: [{ text, kind }] }.
  * Each item: { key, ex, name, kind, sets, reps, lo, hi, w, base, rir, rest, ss, perSide, unit, inc, skipped, why[] }
  */
-export function prescribe({ day, date, sessions, settings, check = {}, minimal = false }) {
+export function prescribe({ day, date, sessions, settings, check = {}, minimal = false, home = false }) {
   const wk = weekInfo(date, settings.programStart);
   const phase = wk.phase || PHASES[1];
   const deload = !!phase.deload;
@@ -98,10 +99,12 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
   if (check.sleep != null && check.sleep !== '' && Number(check.sleep) < 6 && !minimal)
     notes.push({ kind: 'sleep', text: `Short night (${check.sleep} h). Consider the minimum session: jumps and the main lift.`, offerMinimal: true });
   if (minimal) notes.push({ kind: 'minimal', text: 'Minimum session: jumps and the main lift. Cut sets, not load.' });
+  if (home) notes.push({ kind: 'home', text: 'Home gym version: dumbbell and home-machine stand-ins, and jumps go out instead of up (low ceiling).' });
 
   const items = DAYS[day].slots.map((slot, i) => {
-    let exId = swaps[slot.ex] || slot.ex;
+    let exId = home ? HOME[slot.ex] || slot.ex : swaps[slot.ex] || slot.ex;
     const why = [];
+    if (home && exId !== slot.ex) why.push(`Home stand-in for ${exName(slot.ex).toLowerCase()}`);
     // A sore low back swaps the front squat for split squats.
     if (lowback >= 2 && (slot.ex === 'frontsquat') && EXERCISES[exId].lowBack) {
       exId = 'splitsquat';

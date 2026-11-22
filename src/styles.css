@@ -1102,6 +1102,7 @@ p.banner { margin: 0; }
 
 /* Train: picking a day */
 .day-seg { align-self: flex-start; }
+.where-seg { align-self: flex-start; }
 .ss-tag { flex: none; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; background: var(--raised); color: var(--muted); font-size: 11px; font-weight: 800; }
 .ss-tag.blank { background: none; }
 .preview-rows .row { padding-block: 8px; }

@@ -69,6 +69,18 @@ export const EXERCISES = {
   dbbench: { name: 'Dumbbell bench press', kind: 'main', inc: 5, muscles: ['chest', 'triceps'], also: ['shoulders'], cue: 'Control the bottom.' },
   hexrow: { name: 'Cable row', kind: 'acc', inc: 10, muscles: ['back'], also: ['biceps'], cue: 'Tall chest, elbows back.' },
   smithcalf: { name: 'Seated calf raise', kind: 'acc', inc: 10, muscles: ['calves'], cue: 'Pause at the bottom.' },
+
+  // Home gym (Body-Solid cable machine, dumbbells, adjustable bench, plyo box, stability balls, TRX).
+  // Machine moves get their own ids so the home stack's weights never mix with the rec center's.
+  latbound: { name: 'Lateral bound', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Push off sideways off one leg, stick the landing on the other. Low ceiling: jump out, not up.' },
+  dbrdl: { name: 'Dumbbell Romanian deadlift', kind: 'acc', inc: 5, muscles: ['hamstrings', 'glutes'], also: ['lowback'], lowBack: true, cue: 'Stand-in for the trap bar. Heavy dumbbells, hips back, flat back, stop at mid-shin.' },
+  gobletsquat: { name: 'Goblet squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], also: ['core'], cue: 'Heaviest dumbbell held at your chest, sit down between your hips, slow on the way down.' },
+  dbhipthrust: { name: 'Dumbbell hip thrust', kind: 'acc', inc: 5, muscles: ['glutes'], also: ['hamstrings'], cue: 'Upper back on the bench, dumbbell on your hips. Ribs down, pause at the top.' },
+  ballcurl: { name: 'Stability ball hamstring curl', kind: 'acc', inc: 5, bw: true, muscles: ['hamstrings'], cue: 'Heels on the ball, hips up, curl in, slow out. Go single-leg once 3 × 12 is easy.' },
+  homepulldown: { name: 'Lat pulldown (home machine)', kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Top pulley on the Body-Solid. Pull to the top of the chest.' },
+  inclinerow: { name: 'Chest-supported dumbbell row', kind: 'acc', inc: 5, muscles: ['back'], also: ['biceps'], cue: 'Chest down on the bench set to an incline. Squeeze shoulder blades at the top.' },
+  homepallof: { name: 'Pallof press (home machine)', kind: 'acc', inc: 5, muscles: ['core'], perSide: true, cue: 'Middle or low pulley on the Body-Solid. Don’t let the cable turn you.' },
+  homepushdown: { name: 'Triceps pushdown (home machine)', kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'Top pulley on the Body-Solid. Elbows pinned.' },
 };
 export const exName = (id) => (EXERCISES[id] || { name: id }).name;
 
@@ -83,6 +95,28 @@ export const ALTERNATIVES = {
   slcalf: ['calf', 'smithcalf'],
   dbrow: ['hexrow', 'csrow'],
   legpress: ['splitsquat'],
+};
+
+/** The at-home version of each exercise in the program. Anything not listed is done as written.
+    Gym swaps from Plan don't apply at home. Jumps go sideways or forward because the basement ceiling is
+    too low for box jumps or max-height jumps, and the main slot uses a dumbbell stand-in (3 × 6–8). */
+export const HOME = {
+  // Day 1
+  boxjump: 'broadjump',
+  slapproach: 'bound',
+  trapbar: 'dbrdl',
+  pullup: 'homepulldown',
+  csrow: 'inclinerow',
+  pallof: 'homepallof',
+  // Day 2
+  bench: 'dbbench',
+  hipthrust: 'dbhipthrust',
+  legpress: 'gobletsquat',
+  hamcurl: 'ballcurl',
+  // Day 3
+  cmj: 'latbound',
+  frontsquat: 'gobletsquat',
+  pushdown: 'homepushdown',
 };
 
 /* ---------- The three lift days ----------
