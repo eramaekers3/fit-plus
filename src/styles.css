@@ -1410,3 +1410,121 @@ p.banner { margin: 0; }
 .hx input { position: absolute; top: 0; left: 0; width: 1px; height: 1px; margin: 0; opacity: 0.001; pointer-events: none; }
 :disabled > .hx, [aria-disabled='true'] > .hx { display: none; }
 .toggle input[switch] { width: auto; height: auto; }
+
+/* ---------- Warm-ups & stretches (Routines.jsx) ----------
+   Each routine has its own hue: tiles get a tinted, grainy face and a colored icon puck; the
+   player's ring takes the same color. */
+.rt-card .card-head { align-items: center; }
+.rt-seg button { padding: 5px 12px; font-size: 13px; }
+.wide-seg { display: flex; width: 100%; margin-bottom: 14px; }
+.wide-seg button { flex: 1; }
+
+.rt-adapt {
+  position: relative; width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-align: left;
+  border: 1.5px solid color-mix(in srgb, var(--sun) 55%, var(--line)); border-radius: 16px; color: var(--ink);
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--sun) 22%, transparent), transparent 60%),
+    radial-gradient(120% 140% at 100% 100%, color-mix(in srgb, var(--lilac) 18%, transparent), transparent 60%),
+    var(--raised);
+  box-shadow: 4px 5px 0 var(--shade);
+  overflow: hidden;
+}
+.rt-adapt::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.09) 50%, transparent 65%);
+  transform: translateX(-100%); animation: rtSheen 5.5s var(--ease-out) 1.2s infinite;
+}
+.rt-adapt-ic { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--sun); color: var(--sun-ink); box-shadow: 2px 3px 0 var(--sun-edge); }
+.rt-adapt-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.rt-adapt-txt b { font: var(--display-weight) 17px/1.15 var(--display); letter-spacing: -0.02em; }
+.rt-adapt-txt span { font-size: 12.5px; color: var(--muted); }
+.rt-adapt > .icon { color: var(--muted); }
+/* Soft film grain over the tinted faces. */
+.rt-tile::before, .rt-hero::before, .rt-adapt::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+  background: var(--grain-light); background-size: 180px 180px; opacity: 0.22;
+}
+.rt-tile > *, .rt-hero > *, .rt-adapt > * { position: relative; }
+@keyframes rtSheen { 0% { transform: translateX(-100%); } 40%, 100% { transform: translateX(100%); } }
+
+.rt-group { margin-top: 14px; }
+.rt-label { font-size: 11.5px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); margin-bottom: 8px; }
+.rt-row {
+  display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  margin: 0 -16px; padding: 2px 16px 12px; scroll-padding-inline: 16px;
+}
+.rt-row::-webkit-scrollbar { display: none; }
+.rt-tile {
+  --hue: var(--sun);
+  flex: none; width: 132px; min-height: 124px; scroll-snap-align: start;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 12px; text-align: left;
+  border: 1.5px solid color-mix(in srgb, var(--hue) 45%, var(--line)); border-radius: 16px; color: var(--ink);
+  position: relative; overflow: hidden;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--hue) 26%, transparent), transparent 70%), var(--raised);
+  box-shadow: 3px 4px 0 color-mix(in srgb, var(--hue) 22%, #141413);
+  animation: rtIn 0.45s var(--spring) both; animation-delay: calc(var(--i, 0) * 45ms);
+  transition: transform 0.12s var(--ease-out), box-shadow 0.12s var(--ease-out);
+}
+.rt-tile:active { transform: translate(2px, 3px); box-shadow: 1px 1px 0 color-mix(in srgb, var(--hue) 22%, #141413); }
+.rt-tile b { font: var(--display-weight) 16px/1.12 var(--display); letter-spacing: -0.02em; margin-top: auto; }
+.rt-tile-meta { font-size: 12px; color: var(--muted); font-weight: 600; }
+.rt-tile-ic, .rt-hero-ic {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--hue); color: #1d1c1a; box-shadow: 2px 2px 0 color-mix(in srgb, var(--hue) 45%, #000);
+}
+@keyframes rtIn { from { opacity: 0; transform: translateY(8px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+.rt-hero {
+  --hue: var(--sun);
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px; margin-bottom: 12px; border-radius: 16px;
+  border: 1.5px solid color-mix(in srgb, var(--hue) 45%, var(--line));
+  position: relative; overflow: hidden;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--hue) 24%, transparent), transparent 75%), var(--raised);
+}
+.rt-hero-ic { flex: none; width: 44px; height: 44px; }
+.rt-hero h3 { margin: 0 0 2px; font: var(--display-weight) 22px/1.1 var(--display); letter-spacing: var(--display-tracking); }
+.rt-hero p { margin: 0; color: var(--muted); font-size: 14px; }
+.rt-list { margin-bottom: 4px; }
+.rt-list .st-hold { text-align: right; }
+.rt-ess { display: inline-block; width: 7px; height: 7px; margin-left: 7px; vertical-align: 2px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sun) 20%, transparent); }
+.rt-legend { margin: 6px 0 0; }
+.rt-go { --hue: var(--sun); background: var(--hue); color: #1d1c1a; box-shadow: 0 3px 0 color-mix(in srgb, var(--hue) 55%, #000); }
+
+.rt-step { margin-bottom: 16px; }
+.rt-step > b, .rt-step-head b { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.rt-step-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.rt-step-head b { margin: 0; }
+.rt-mode button { padding: 5px 14px; font-size: 13px; }
+.rt-mode button:last-child[aria-pressed='true'] { background: var(--sky); color: #0e2233; }
+.rt-hint { margin: 0 0 8px; }
+.rt-grid.mode-tight .sore-chip.s1 { --c: var(--sky); }
+.rt-grid.mode-tight .sore-chip.s2 { --c: #4fa8f0; background: color-mix(in srgb, var(--sky) 12%, var(--raised)); }
+.rt-grid.mode-tight .sore-chip.s3 { --c: var(--lilac); background: color-mix(in srgb, var(--lilac) 16%, var(--raised)); }
+.rt-grid .sore-word { display: flex; flex-wrap: wrap; gap: 2px 6px; align-items: baseline; }
+.rt-other { font-style: normal; font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+.rt-other.tight { color: var(--sky); }
+.rt-other.sore { color: #ff9f4a; }
+
+.rt-built {
+  --hue: var(--sun);
+  padding: 12px 14px; border-radius: 16px; border: 1px dashed color-mix(in srgb, var(--hue) 50%, var(--line));
+  background: color-mix(in srgb, var(--hue) 6%, var(--surface));
+}
+.rt-built-head { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+.rt-built-head b { font: var(--display-weight) 18px/1.1 var(--display); letter-spacing: -0.02em; }
+.rt-built .st-focus { margin: 0; }
+.rt-built .st-list li { animation: rtIn 0.3s var(--ease-out) both; }
+
+/* The player takes the routine's color. */
+.rt-player.tinted .st-ring { background: conic-gradient(var(--rc) calc(var(--p) * 360deg), var(--raised) 0); }
+.rt-player.tinted .st-phase { color: var(--rc); }
+.rt-player.tinted .st-dots i.on { background: var(--rc); }
+.rt-reps {
+  padding: 4px 12px; border-radius: 999px; font-weight: 800; font-size: 14px;
+  background: color-mix(in srgb, var(--rc, var(--mint)) 18%, var(--raised));
+}
+.rt-finish .icon { color: var(--rc, var(--lilac)); }
+.st-other { margin-top: 10px; }
+.warm-guided { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+.warm-guided .mini { display: inline-flex; align-items: center; gap: 5px; }
+@media (prefers-reduced-motion: reduce) { .rt-adapt::after, .rt-tile { animation: none; } }

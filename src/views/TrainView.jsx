@@ -12,6 +12,7 @@ import { cheer } from '../lib/cheer.js';
 import { toast } from '../lib/toast.js';
 import { open } from '../lib/open.js';
 import { Icon, Sheet } from '../components/ui.jsx';
+import RoutinesCard, { AdaptiveSheet, LibrarySheet } from '../components/Routines.jsx';
 import { StartCard } from './TodayView.jsx';
 
 export default function TrainView() {
@@ -107,6 +108,8 @@ function Picker() {
         </button>
         <p className="muted small center-text">First you’ll rate soreness, sleep and basketball. The workout adjusts to it.</p>
       </section>
+
+      <RoutinesCard kind="warm" />
     </>
   );
 }
@@ -238,11 +241,20 @@ function BodyCheck({ session }) {
 function Workout({ session }) {
   const [finishing, setFinishing] = useState(false);
   const [warmOpen, setWarmOpen] = useState(() => !Object.keys(session.warm || {}).length);
+  const [warmSheet, setWarmSheet] = useState(null); // 'adapt' | 'pick'
   const items = session.items || [];
   const doneSets = items.reduce((t, it) => t + (it.log || []).length, 0);
   const totalSets = items.filter((it) => !it.skipped).reduce((t, it) => t + it.sets, 0);
   const warm = session.warm || {};
   const warmDone = WARMUP.filter((w) => warm[w.id]).length;
+
+  // A guided warm-up ticks the checklist lines it covered (the two ramp-up sets are still yours to do).
+  const markWarm = (covered) => {
+    const next = { ...(session.warm || {}) };
+    covered.forEach((id) => (next[id] = true));
+    patch(session.id, { warm: next });
+    if (WARMUP.every((x) => next[x.id])) setWarmOpen(false);
+  };
 
   const updItem = (key, fn) => patch(session.id, { items: (session.items || []).map((it) => (it.key === key ? fn(it) : it)) });
 
@@ -275,6 +287,12 @@ function Workout({ session }) {
           <span className="meta">{warmDone === WARMUP.length ? 'Done ✓' : `${warmDone}/${WARMUP.length} · ~10 min`}</span>
         </div>
         {warmOpen && (
+          <div className="warm-guided">
+            <button className="mini sun" onClick={() => setWarmSheet('adapt')}><Icon name="spark" size={14} /> Build from body check</button>
+            <button className="mini" onClick={() => setWarmSheet('pick')}>Pick a routine</button>
+          </div>
+        )}
+        {warmOpen && (
           <ul className="rows">
             {WARMUP.map((w) => (
               <li key={w.id} className="row">
@@ -299,6 +317,12 @@ function Workout({ session }) {
           </ul>
         )}
       </section>
+      {warmSheet === 'adapt' && (
+        <AdaptiveSheet kind="warm" activity="lift" prefillSore={(session.check && session.check.sore) || {}} onClose={() => setWarmSheet(null)} onWarmDone={markWarm} />
+      )}
+      {warmSheet === 'pick' && (
+        <LibrarySheet kind="warm" prefillSore={(session.check && session.check.sore) || {}} onClose={() => setWarmSheet(null)} onWarmDone={markWarm} />
+      )}
 
       {items.map((it) => (
         <ExerciseCard key={it.key} it={it} session={session} updItem={updItem} />

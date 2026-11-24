@@ -11,6 +11,7 @@ import { goTab, quickLog, openVert, openSession } from '../lib/open.js';
 import { startSession, rx } from './TrainView.jsx';
 import CardStack from '../components/CardStack.jsx';
 import StretchCard from '../components/Stretch.jsx';
+import RoutinesCard from '../components/Routines.jsx';
 import { CountUp, Icon, Ring } from '../components/ui.jsx';
 import { haptic } from '../lib/haptics.js';
 import { cheer } from '../lib/cheer.js';
@@ -44,6 +45,7 @@ export default function TodayView() {
         cards={[
           { id: 'workout', title: 'Workout', node: <WorkoutCard /> },
           { id: 'stretch', title: 'Tonight’s stretch', node: <StretchCard date={today} /> },
+          { id: 'routines', title: 'Warm-ups & stretches', node: <RoutinesCard /> },
           { id: 'week', title: 'This week', node: <WeekCard /> },
           { id: 'protein', title: 'Protein', node: <ProteinCard /> },
           { id: 'weight', title: 'Weight', node: <WeightCard /> },

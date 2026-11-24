@@ -48,6 +48,9 @@ const paths = {
   swap: <><path d="M7 7h11l-3-3M17 17H6l3 3" /></>,
   skip: <><path d="m6 6 7 6-7 6V6ZM17 6v12" /></>,
   jump: <><path d="M12 4v10M8 8l4-4 4 4" /><path d="M5 20h14" /></>,
+  spark: <><path d="M12 3.5v4M12 16.5v4M3.5 12h4M16.5 12h4" /><path d="m12 8.5 1.2 2.3 2.3 1.2-2.3 1.2L12 15.5l-1.2-2.3L8.5 12l2.3-1.2L12 8.5Z" /></>,
+  run: <><circle cx="14.5" cy="5" r="1.8" /><path d="m9 20 2.5-5 3 2.5V21M6 11.5l3-3h4l2 3.5 3 1M11.5 15l1-6.5" /></>,
+  desk: <><path d="M3.5 10h17M5.5 10v9M18.5 10v9M9 6.5h6V10H9z" /></>,
   note: <><path d="M5.5 4.5h9l4 4v11h-13v-15Z" /><path d="M14.5 4.5v4h4M8.5 12.5h7M8.5 16h5" /></>,
 };
 export function Icon({ name, size = 20 }) {
