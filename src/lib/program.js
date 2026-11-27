@@ -76,6 +76,8 @@ export const EXERCISES = {
   // Machine moves get their own ids so the home stack's weights never mix with the rec center's.
   latbound: { name: 'Lateral bound', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Push off sideways off one leg, stick the landing on the other. Low ceiling: jump out, not up.' },
   kneelbroad: { name: 'Kneeling broad jump', kind: 'jump', measure: 'Distance', muscles: ['glutes', 'hamstrings', 'quads'], cue: 'Start tall on your knees, swing the arms, snap the hips and jump forward to your feet. Stick the landing.' },
+  dropbroad: { name: 'Drop to broad jump', kind: 'jump', measure: 'Distance', muscles: ['quads', 'glutes', 'hamstrings'], cue: 'Step (don’t jump) off the plyo box, land on both feet and bounce straight into a broad jump. Short ground contact, stick the landing.' },
+  depthdrop: { name: 'Depth drop', kind: 'jump', measure: 'Box height', muscles: ['quads', 'glutes', 'calves'], cue: 'Step off the plyo box, land quietly in an athletic stance and freeze. Teaches your legs to absorb force.' },
   skater: { name: 'Skater hop', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Side to side off one leg, quick off the ground, land soft on the other. Low and wide, not high.' },
   dbrdl: { name: 'Dumbbell Romanian deadlift', kind: 'acc', inc: 5, muscles: ['hamstrings', 'glutes'], also: ['lowback'], lowBack: true, cue: 'Stand-in for the trap bar. Heavy dumbbells, hips back, flat back, stop at mid-shin.' },
   gobletsquat: { name: 'Goblet squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], also: ['core'], cue: 'Heaviest dumbbell held at your chest, sit down between your hips, slow on the way down.' },
@@ -97,6 +99,7 @@ export const EXERCISES = {
   hammercurl: { name: 'Hammer curl', kind: 'acc', inc: 5, muscles: ['biceps'], cue: 'Thumbs up, elbows pinned.' },
   ohtri: { name: 'Overhead dumbbell triceps extension', kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'One dumbbell in both hands, elbows in, deep stretch behind the head.' },
   deadbug: { name: 'Dead bug', kind: 'acc', inc: 5, bw: true, perSide: true, muscles: ['core'], cue: 'Low back pressed into the floor the whole time, slow reach.' },
+  stepup: { name: 'Box step-up', kind: 'acc', inc: 5, perSide: true, muscles: ['quads', 'glutes'], cue: 'Dumbbells, whole foot on the plyo box, drive through that heel; don’t push off the back foot. Mind your head under a low ceiling.' },
   dbcalf: { name: 'Dumbbell calf raise', kind: 'acc', inc: 5, muscles: ['calves'], cue: 'Balls of the feet on a plate or step, full stretch, pause at the bottom.' },
 };
 export const exName = (id) => (EXERCISES[id] || { name: id }).name;
@@ -144,11 +147,11 @@ export const ALTERNATIVES = {
 
 /** The at-home version of each exercise in the program. Anything not listed is done as written.
     Gym swaps from Plan don't apply at home. Jumps go sideways or forward because the basement ceiling is
-    too low for box jumps or max-height jumps, and each day gets a different kind (Day 1 kneeling broad
-    jump + lateral bound, Day 2 broad jump + single-leg bound as written, Day 3 skater hops), and the main slot uses a dumbbell stand-in (3 × 6–8). */
+    too low for box jumps or max-height jumps, and each day gets a different kind (Day 1 drop to broad
+    jump off the plyo box + lateral bound, Day 2 broad jump + single-leg bound as written, Day 3 skater hops), and the main slot uses a dumbbell stand-in (3 × 6–8). */
 export const HOME = {
   // Day 1
-  boxjump: 'kneelbroad',
+  boxjump: 'dropbroad',
   slapproach: 'latbound',
   trapbar: 'dbrdl',
   pullup: 'homepulldown',
