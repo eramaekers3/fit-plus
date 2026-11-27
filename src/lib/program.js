@@ -73,6 +73,8 @@ export const EXERCISES = {
   // Home gym (Body-Solid cable machine, dumbbells, adjustable bench, plyo box, stability balls, TRX).
   // Machine moves get their own ids so the home stack's weights never mix with the rec center's.
   latbound: { name: 'Lateral bound', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Push off sideways off one leg, stick the landing on the other. Low ceiling: jump out, not up.' },
+  kneelbroad: { name: 'Kneeling broad jump', kind: 'jump', measure: 'Distance', muscles: ['glutes', 'hamstrings', 'quads'], cue: 'Start tall on your knees, swing the arms, snap the hips and jump forward to your feet. Stick the landing.' },
+  skater: { name: 'Skater hop', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Side to side off one leg, quick off the ground, land soft on the other. Low and wide, not high.' },
   dbrdl: { name: 'Dumbbell Romanian deadlift', kind: 'acc', inc: 5, muscles: ['hamstrings', 'glutes'], also: ['lowback'], lowBack: true, cue: 'Stand-in for the trap bar. Heavy dumbbells, hips back, flat back, stop at mid-shin.' },
   gobletsquat: { name: 'Goblet squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], also: ['core'], cue: 'Heaviest dumbbell held at your chest, sit down between your hips, slow on the way down.' },
   dbhipthrust: { name: 'Dumbbell hip thrust', kind: 'acc', inc: 5, muscles: ['glutes'], also: ['hamstrings'], cue: 'Upper back on the bench, dumbbell on your hips. Ribs down, pause at the top.' },
@@ -99,11 +101,12 @@ export const ALTERNATIVES = {
 
 /** The at-home version of each exercise in the program. Anything not listed is done as written.
     Gym swaps from Plan don't apply at home. Jumps go sideways or forward because the basement ceiling is
-    too low for box jumps or max-height jumps, and the main slot uses a dumbbell stand-in (3 × 6–8). */
+    too low for box jumps or max-height jumps, and each day gets a different kind (Day 1 kneeling broad
+    jump + lateral bound, Day 2 broad jump + single-leg bound as written, Day 3 skater hops), and the main slot uses a dumbbell stand-in (3 × 6–8). */
 export const HOME = {
   // Day 1
-  boxjump: 'broadjump',
-  slapproach: 'bound',
+  boxjump: 'kneelbroad',
+  slapproach: 'latbound',
   trapbar: 'dbrdl',
   pullup: 'homepulldown',
   csrow: 'inclinerow',
@@ -114,7 +117,7 @@ export const HOME = {
   legpress: 'gobletsquat',
   hamcurl: 'ballcurl',
   // Day 3
-  cmj: 'latbound',
+  cmj: 'skater',
   frontsquat: 'gobletsquat',
   pushdown: 'homepushdown',
 };
