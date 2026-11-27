@@ -8,7 +8,7 @@ export const APP = 'fit';
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVER_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
 const { VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, CRON_SECRET } = process.env;
-const SUBJECT = process.env.VAPID_SUBJECT || 'https://fit-plus.vercel.app';
+const SUBJECT = process.env.VAPID_SUBJECT || 'https://fit-plus-sage.vercel.app';
 
 export const hasDb = () => !!(SUPABASE_URL && SERVER_KEY);
 export const hasPushKeys = () => !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);

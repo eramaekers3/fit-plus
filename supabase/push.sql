@@ -1,6 +1,6 @@
 -- fit+ notifications. Safe to run more than once.
 -- Run it in Supabase: Dashboard → SQL Editor → New query → paste → Run.
--- First replace {{FIT_URL}} with fit+'s address (https://fit-plus.vercel.app) and {{FIT_CRON_SECRET}}
+-- First replace {{FIT_URL}} with fit+'s address (https://fit-plus-sage.vercel.app) and {{FIT_CRON_SECRET}}
 -- with the CRON_SECRET set on the fit-plus project in Vercel.
 --
 -- push_subscriptions and push_log come from lifestyle+ (its supabase/push.sql); all three apps
