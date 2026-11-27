@@ -30,6 +30,7 @@ export const LEG_MUSCLES = MUSCLES.filter((m) => m.legs).map((m) => m.id);
    measure: what a jump logs (default 'Height'; 'Distance' for broad jumps and bounds)
    gym:     needs rec-center equipment (or, for jumps, a high ceiling): not offered at home
    homeOnly: the home machine's version: not offered at the gym
+   jumpW:   a jump done holding weight: logs the weight, no height (noMeasure)
 */
 export const EXERCISES = {
   boxjump: { name: 'Box jump', gym: true, kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Max height; land soft, step down.' },
@@ -76,6 +77,7 @@ export const EXERCISES = {
   // Machine moves get their own ids so the home stack's weights never mix with the rec center's.
   latbound: { name: 'Lateral bound', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Push off sideways off one leg, stick the landing on the other. Low ceiling: jump out, not up.' },
   kneelbroad: { name: 'Kneeling broad jump', kind: 'jump', measure: 'Distance', muscles: ['glutes', 'hamstrings', 'quads'], cue: 'Start tall on your knees, swing the arms, snap the hips and jump forward to your feet. Stick the landing.' },
+  wboxjump: { name: 'Weighted box jump (16")', kind: 'jump', jumpW: true, noMeasure: true, inc: 5, muscles: ['quads', 'glutes', 'calves'], cue: 'Light dumbbells or a vest on the 16" plyo box. Explode up, land soft and quiet, step down. Fast every rep: if the jump slows, drop the weight.' },
   dropbroad: { name: 'Drop to broad jump', kind: 'jump', measure: 'Distance', muscles: ['quads', 'glutes', 'hamstrings'], cue: 'Step (don’t jump) off the plyo box, land on both feet and bounce straight into a broad jump. Short ground contact, stick the landing.' },
   depthdrop: { name: 'Depth drop', kind: 'jump', measure: 'Box height', muscles: ['quads', 'glutes', 'calves'], cue: 'Step off the plyo box, land quietly in an athletic stance and freeze. Teaches your legs to absorb force.' },
   skater: { name: 'Skater hop', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'quads', 'calves'], cue: 'Side to side off one leg, quick off the ground, land soft on the other. Low and wide, not high.' },
@@ -146,12 +148,12 @@ export const ALTERNATIVES = {
 };
 
 /** The at-home version of each exercise in the program. Anything not listed is done as written.
-    Gym swaps from Plan don't apply at home. Jumps go sideways or forward because the basement ceiling is
-    too low for box jumps or max-height jumps, and each day gets a different kind (Day 1 drop to broad
-    jump off the plyo box + lateral bound, Day 2 broad jump + single-leg bound as written, Day 3 skater hops), and the main slot uses a dumbbell stand-in (3 × 6–8). */
+    Gym swaps from Plan don't apply at home. The ceiling is 9 ft, too low for tall box jumps or
+    max-height jumps, so jumps go onto the 16" plyo box, forward or sideways, a different kind each day
+    (Day 1 weighted 16" box jump + lateral bound, Day 2 broad jump + single-leg bound as written, Day 3 skater hops), and the main slot uses a dumbbell stand-in (3 × 6–8). */
 export const HOME = {
   // Day 1
-  boxjump: 'dropbroad',
+  boxjump: 'wboxjump',
   slapproach: 'latbound',
   trapbar: 'dbrdl',
   pullup: 'homepulldown',

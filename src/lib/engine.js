@@ -201,6 +201,8 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
       ss: slot.ss || null,
       perSide: !!ex.perSide,
       measure: ex.measure || 'Height',
+    jumpW: !!ex.jumpW,
+    noMeasure: !!ex.noMeasure,
       unit: ex.unit || 'reps',
       inc: ex.inc || 5,
       bw: !!ex.bw,
@@ -266,6 +268,8 @@ export function swapItem(it, newId, { session, sessions, settings = {} }) {
     rir: kind === 'main' ? 2 : kind === 'acc' ? 1 : null,
     perSide: !!ex.perSide,
     measure: ex.measure || 'Height',
+    jumpW: !!ex.jumpW,
+    noMeasure: !!ex.noMeasure,
     unit: ex.unit || 'reps',
     inc: ex.inc || 5,
     bw: !!ex.bw,
@@ -294,6 +298,11 @@ export function targetFor({ exId, kind, lo, hi, date, deload, sessions, override
   const hist = historyOf(sessions, exId, date).filter((h) => !(h.date === date && !h.session.finishedAt));
   if (kind === 'jump') {
     const heights = hist.flatMap((h) => h.item.log.map((x) => Number(x.h) || 0));
+    if (ex.jumpW) {
+      // Weighted jumps: same weight as last time (speed matters more than load, so you set the jumps up).
+      const lastLog = hist[0] && hist[0].item.log.slice(-1)[0];
+      return { w: lastLog && lastLog.w != null ? Number(lastLog.w) : null, reps: 3, lastBest: null };
+    }
     return { w: null, reps: 3, lastBest: heights.length ? Math.max(...heights) : null };
   }
   if (override != null && override !== '') return { w: Number(override), reps: lo, why: 'Weight set by you' };

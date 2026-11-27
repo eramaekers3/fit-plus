@@ -213,7 +213,7 @@ export function ExerciseSheet({ exId, onClose }) {
               <li key={h.session.id + h.item.key} className="row">
                 <span className="row-title">
                   <b>{fmt(h.date, { month: 'short', day: 'numeric' })}{h.deload ? ' · deload' : ''}</b>
-                  <span className="muted small">{h.item.log.map((l) => (ex.kind === 'jump' ? `${l.reps}${l.h ? `@${l.h}″` : ''}` : `${l.w}×${l.reps}${l.rir != null ? ` (${l.rir})` : ''}`)).join(', ')}</span>
+                  <span className="muted small">{h.item.log.map((l) => (ex.kind === 'jump' ? `${l.reps}${l.w ? ` × ${l.w} lb` : ''}${l.h ? `@${l.h}″` : ''}` : `${l.w}×${l.reps}${l.rir != null ? ` (${l.rir})` : ''}`)).join(', ')}</span>
                 </span>
                 {best > 0 && !ex.bw && !ex.assist && <span className="meta">~{Math.round(best)}</span>}
               </li>

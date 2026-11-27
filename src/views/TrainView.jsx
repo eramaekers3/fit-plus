@@ -119,7 +119,7 @@ export function rx(it) {
   const reps = it.kind === 'acc' && it.lo !== it.hi ? `${it.reps}` : `${it.lo}`;
   const unit = it.unit === 'm' ? ' m' : '';
   const side = it.perSide ? '/side' : '';
-  const w = it.kind === 'jump' ? '' : it.bw ? (it.w ? ` · +${it.w} lb` : ' · bodyweight') : it.assist ? (it.w != null ? ` · ${it.w} lb help` : ' · pick help') : it.w != null ? ` · ${it.w} lb` : ' · pick weight';
+  const w = it.kind === 'jump' ? (it.jumpW ? (it.w != null ? ` · ${it.w} lb` : ' · pick weight') : '') : it.bw ? (it.w ? ` · +${it.w} lb` : ' · bodyweight') : it.assist ? (it.w != null ? ` · ${it.w} lb help` : ' · pick help') : it.w != null ? ` · ${it.w} lb` : ' · pick weight';
   return `${it.sets} × ${reps}${unit}${side}${w}`;
 }
 
@@ -369,7 +369,7 @@ function ExerciseCard({ it, session, updItem }) {
 
   const logSet = (rir, el) => {
     const idx = log.length;
-    const entry = it.kind === 'jump' ? { reps: it.reps, h: h ? Number(h) : null } : { w: it.w ?? 0, reps: curReps, rir };
+    const entry = it.kind === 'jump' ? { reps: it.reps, h: h ? Number(h) : null, ...(it.jumpW ? { w: it.w ?? 0 } : {}) } : { w: it.w ?? 0, reps: curReps, rir };
     updItem(it.key, (x) => ({ ...x, log: [...(x.log || []), { ...entry, at: new Date().toISOString() }] }));
     setReps(null);
     setH('');
@@ -427,7 +427,7 @@ function ExerciseCard({ it, session, updItem }) {
       {it.why.length > 0 && <p className="ex-why">{it.why.join(' · ')}</p>}
       {it.cue && <p className="ex-cue">{it.cue}</p>}
 
-      {it.kind !== 'jump' && !doneAll && (
+      {(it.kind !== 'jump' || it.jumpW) && !doneAll && (
         <div className="weight-row">
           <button className="icon-btn" aria-label={`${it.inc} lb lighter`} onClick={() => setW((it.w ?? 0) - it.inc)}><Icon name="minus" /></button>
           <label className="weight-box">
@@ -452,7 +452,7 @@ function ExerciseCard({ it, session, updItem }) {
             <button className="set-line" onClick={() => setEditing(editing === i ? null : i)} aria-expanded={editing === i}>
               <span className="set-n">{i + 1}</span>
               <span className="set-what">
-                {it.kind === 'jump' ? `${l.reps} jumps${l.h ? ` · ${l.h} in` : ''}` : `${it.bw && !l.w ? 'BW' : `${l.w} lb`} × ${l.reps}${it.unit === 'm' ? ' m' : ''}`}
+                {it.kind === 'jump' ? `${l.reps} jumps${l.w ? ` · ${l.w} lb` : ''}${l.h ? ` · ${l.h} in` : ''}` : `${it.bw && !l.w ? 'BW' : `${l.w} lb`} × ${l.reps}${it.unit === 'm' ? ' m' : ''}`}
               </span>
               {it.kind !== 'jump' && <span className={`rir-tag r${Math.min(4, l.rir)}`}>{l.rir >= 4 ? '4+' : l.rir} left</span>}
               <Icon name="check" size={16} />
@@ -488,7 +488,7 @@ function ExerciseCard({ it, session, updItem }) {
             </div>
             {it.kind === 'jump' ? (
               <div className="jump-log">
-                <input className="input h-in" inputMode="decimal" placeholder={`${it.measure || 'Height'} (in, optional)`} value={h} onChange={(e) => setH(e.target.value.replace(/[^\d.]/g, ''))} />
+                {!it.noMeasure && <input className="input h-in" inputMode="decimal" placeholder={`${it.measure || 'Height'} (in, optional)`} value={h} onChange={(e) => setH(e.target.value.replace(/[^\d.]/g, ''))} />}
                 <button className="btn" onClick={(e) => logSet(null, e.currentTarget)}>Log set</button>
               </div>
             ) : it.w == null && !it.bw ? (
