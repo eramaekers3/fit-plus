@@ -146,8 +146,9 @@ export function ExerciseSheet({ exId, onClose }) {
   const sessions = useSessions();
   const ex = EXERCISES[exId];
   // Which program slot this exercise fills (itself, or the one it stands in for).
-  const slot = Object.keys(ALTERNATIVES).find((k) => k === exId || (s.swaps || {})[k] === exId) || exId;
-  const options = [slot, ...(ALTERNATIVES[slot] || [])];
+  const saved = s.swaps || {};
+  const slot = Object.keys(saved).find((k) => saved[k] === exId) || Object.keys(ALTERNATIVES).find((k) => k === exId) || exId;
+  const options = [...new Set([slot, ...(ALTERNATIVES[slot] || []), saved[slot]].filter(Boolean))];
   const hist = useMemo(() => historyOf(sessions, exId).slice(0, 6), [sessions, exId]);
   const override = (s.nextWeights || {})[exId];
   const [w, setW] = useState(override ?? '');

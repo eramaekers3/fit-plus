@@ -1528,3 +1528,12 @@ p.banner { margin: 0; }
 .warm-guided { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
 .warm-guided .mini { display: inline-flex; align-items: center; gap: 5px; }
 @media (prefers-reduced-motion: reduce) { .rt-adapt::after, .rt-tile { animation: none; } }
+
+/* ---------- Swapping an exercise mid-workout ---------- */
+.ex-side { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+.swap-btn { padding: 4px 8px; }
+.swap-back { margin: 0 0 12px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.swap-muscles { margin-bottom: 12px; }
+.swap-list { margin-top: 4px; }
+.swap-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: none; border: 0; color: inherit; padding: 0; }
+.keep-toggle { margin-top: 14px; }

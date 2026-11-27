@@ -28,47 +28,49 @@ export const LEG_MUSCLES = MUSCLES.filter((m) => m.legs).map((m) => m.id);
    assist: the weight you log is help (an assisted machine or band); progress means taking help away
    unit:   'reps' or 'm' (carries are logged in meters)
    measure: what a jump logs (default 'Height'; 'Distance' for broad jumps and bounds)
+   gym:     needs rec-center equipment (or, for jumps, a high ceiling): not offered at home
+   homeOnly: the home machine's version: not offered at the gym
 */
 export const EXERCISES = {
-  boxjump: { name: 'Box jump', kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Max height; land soft, step down.' },
+  boxjump: { name: 'Box jump', gym: true, kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Max height; land soft, step down.' },
   broadjump: { name: 'Broad jump', kind: 'jump', measure: 'Distance', muscles: ['quads', 'glutes', 'hamstrings'], cue: 'Stick the landing.' },
-  cmj: { name: 'Countermovement jump', kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Arm swing, max height, reset each rep.' },
-  slapproach: { name: 'Single-leg approach jump', kind: 'jump', perSide: true, muscles: ['quads', 'glutes', 'calves'], cue: '2–3 step approach, take off one leg, touch as high as you can. Log touch height minus standing reach.' },
+  cmj: { name: 'Countermovement jump', gym: true, kind: 'jump', muscles: ['quads', 'glutes', 'calves'], cue: 'Arm swing, max height, reset each rep.' },
+  slapproach: { name: 'Single-leg approach jump', gym: true, kind: 'jump', perSide: true, muscles: ['quads', 'glutes', 'calves'], cue: '2–3 step approach, take off one leg, touch as high as you can. Log touch height minus standing reach.' },
   bound: { name: 'Single-leg bound', kind: 'jump', perSide: true, measure: 'Distance', muscles: ['glutes', 'hamstrings', 'calves'], cue: 'Hop forward off one leg, sharp takeoff, stick each landing.' },
 
-  trapbar: { name: 'Trap bar deadlift', kind: 'main', inc: 5, muscles: ['glutes', 'quads', 'hamstrings'], also: ['back', 'lowback'], lowBack: true, cue: 'Brace, chest up, stop if your back rounds.' },
-  bench: { name: 'Bench press', kind: 'main', inc: 5, muscles: ['chest', 'triceps'], also: ['shoulders'], cue: 'Shoulder blades pinned, feet planted.' },
-  frontsquat: { name: 'Front squat', kind: 'main', inc: 5, muscles: ['quads', 'glutes'], also: ['core', 'lowback'], lowBack: true, cue: 'Upright torso, elbows high.' },
+  trapbar: { name: 'Trap bar deadlift', gym: true, kind: 'main', inc: 5, muscles: ['glutes', 'quads', 'hamstrings'], also: ['back', 'lowback'], lowBack: true, cue: 'Brace, chest up, stop if your back rounds.' },
+  bench: { name: 'Bench press', gym: true, kind: 'main', inc: 5, muscles: ['chest', 'triceps'], also: ['shoulders'], cue: 'Shoulder blades pinned, feet planted.' },
+  frontsquat: { name: 'Front squat', gym: true, kind: 'main', inc: 5, muscles: ['quads', 'glutes'], also: ['core', 'lowback'], lowBack: true, cue: 'Upright torso, elbows high.' },
 
   bss: { name: 'Bulgarian split squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], perSide: true, cue: 'Dumbbells; slight forward lean.' },
-  pullup: { name: 'Pull-up', kind: 'acc', inc: 5, muscles: ['back', 'biceps'], bw: true, cue: 'Add weight once you hit 3 × 10.' },
-  csrow: { name: 'Chest-supported row', kind: 'acc', inc: 5, muscles: ['back'], also: ['biceps'], cue: 'Squeeze shoulder blades at the top.' },
-  pallof: { name: 'Pallof press', kind: 'acc', inc: 5, muscles: ['core'], perSide: true, cue: 'Anti-rotation: don’t let the cable turn you.' },
+  pullup: { name: 'Pull-up', gym: true, kind: 'acc', inc: 5, muscles: ['back', 'biceps'], bw: true, cue: 'Add weight once you hit 3 × 10.' },
+  csrow: { name: 'Chest-supported row', gym: true, kind: 'acc', inc: 5, muscles: ['back'], also: ['biceps'], cue: 'Squeeze shoulder blades at the top.' },
+  pallof: { name: 'Pallof press', gym: true, kind: 'acc', inc: 5, muscles: ['core'], perSide: true, cue: 'Anti-rotation: don’t let the cable turn you.' },
 
-  hipthrust: { name: 'Barbell hip thrust', kind: 'acc', inc: 10, muscles: ['glutes'], also: ['hamstrings'], cue: 'Ribs down, no low-back arch at the top.' },
+  hipthrust: { name: 'Barbell hip thrust', gym: true, kind: 'acc', inc: 10, muscles: ['glutes'], also: ['hamstrings'], cue: 'Ribs down, no low-back arch at the top.' },
   dbrow: { name: 'One-arm dumbbell row', kind: 'acc', inc: 5, muscles: ['back'], also: ['biceps'], perSide: true, cue: 'Pull to the hip.' },
-  legpress: { name: 'Leg press', kind: 'acc', inc: 10, muscles: ['quads', 'glutes'], cue: 'Feet high; stop before your hips tuck under.' },
+  legpress: { name: 'Leg press', gym: true, kind: 'acc', inc: 10, muscles: ['quads', 'glutes'], cue: 'Feet high; stop before your hips tuck under.' },
   inclinedb: { name: 'Incline dumbbell press', kind: 'acc', inc: 5, muscles: ['chest', 'shoulders'], also: ['triceps'], cue: 'Low incline, control the bottom.' },
-  hamcurl: { name: 'Hamstring curl', kind: 'acc', inc: 5, muscles: ['hamstrings'], cue: 'Slow lowering.' },
+  hamcurl: { name: 'Hamstring curl', gym: true, kind: 'acc', inc: 5, muscles: ['hamstrings'], cue: 'Slow lowering.' },
   slcalf: { name: 'Single-leg calf raise', kind: 'acc', inc: 5, muscles: ['calves'], perSide: true, cue: 'Hold a dumbbell, full stretch at the bottom, pause.' },
-  calf: { name: 'Standing calf raise', kind: 'acc', inc: 10, muscles: ['calves'], cue: 'Pause at the bottom.' },
+  calf: { name: 'Standing calf raise', gym: true, kind: 'acc', inc: 10, muscles: ['calves'], cue: 'Pause at the bottom.' },
 
   slrdl: { name: 'Single-leg dumbbell RDL', kind: 'acc', inc: 5, muscles: ['hamstrings', 'glutes'], perSide: true, cue: 'Hips square, flat back.' },
   dbpress: { name: 'Seated dumbbell shoulder press', kind: 'acc', inc: 5, muscles: ['shoulders', 'triceps'], cue: 'Seated takes load off the low back.' },
   lateral: { name: 'Dumbbell lateral raise', kind: 'acc', inc: 5, muscles: ['shoulders'], cue: 'Lead with the elbows.' },
-  pushdown: { name: 'Cable triceps pushdown', kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'Elbows pinned.' },
+  pushdown: { name: 'Cable triceps pushdown', gym: true, kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'Elbows pinned.' },
   curl: { name: 'Dumbbell curl', kind: 'acc', inc: 5, muscles: ['biceps'], cue: 'No swinging.' },
   carry: { name: 'Suitcase carry', kind: 'acc', inc: 5, muscles: ['core'], perSide: true, unit: 'm', cue: 'Stay tall; don’t lean.' },
 
   // Alternatives (picked in Plan, or used automatically when your low back is sore).
-  assistpullup: { name: 'Assisted pull-up', kind: 'acc', inc: 10, assist: true, muscles: ['back', 'biceps'], cue: 'Machine or band. The weight is how much help you get: less help is harder.' },
-  latpulldown: { name: 'Lat pulldown', kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Pull to the top of the chest.' },
-  ssbsquat: { name: 'Safety squat bar squat', kind: 'main', inc: 5, muscles: ['quads', 'glutes'], also: ['core', 'lowback'], lowBack: true, cue: 'Brace hard, sit between your hips.' },
+  assistpullup: { name: 'Assisted pull-up', gym: true, kind: 'acc', inc: 10, assist: true, muscles: ['back', 'biceps'], cue: 'Machine or band. The weight is how much help you get: less help is harder.' },
+  latpulldown: { name: 'Lat pulldown', gym: true, kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Pull to the top of the chest.' },
+  ssbsquat: { name: 'Safety squat bar squat', gym: true, kind: 'main', inc: 5, muscles: ['quads', 'glutes'], also: ['core', 'lowback'], lowBack: true, cue: 'Brace hard, sit between your hips.' },
   splitsquat: { name: 'Dumbbell split squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], perSide: true, cue: 'Back-friendly stand-in for the squat.' },
-  seatedcurl: { name: 'Seated hamstring curl', kind: 'acc', inc: 5, muscles: ['hamstrings'], cue: 'Slow lowering.' },
+  seatedcurl: { name: 'Seated hamstring curl', gym: true, kind: 'acc', inc: 5, muscles: ['hamstrings'], cue: 'Slow lowering.' },
   dbbench: { name: 'Dumbbell bench press', kind: 'main', inc: 5, muscles: ['chest', 'triceps'], also: ['shoulders'], cue: 'Control the bottom.' },
-  hexrow: { name: 'Cable row', kind: 'acc', inc: 10, muscles: ['back'], also: ['biceps'], cue: 'Tall chest, elbows back.' },
-  smithcalf: { name: 'Seated calf raise', kind: 'acc', inc: 10, muscles: ['calves'], cue: 'Pause at the bottom.' },
+  hexrow: { name: 'Cable row', gym: true, kind: 'acc', inc: 10, muscles: ['back'], also: ['biceps'], cue: 'Tall chest, elbows back.' },
+  smithcalf: { name: 'Seated calf raise', gym: true, kind: 'acc', inc: 10, muscles: ['calves'], cue: 'Pause at the bottom.' },
 
   // Home gym (Body-Solid cable machine, dumbbells, adjustable bench, plyo box, stability balls, TRX).
   // Machine moves get their own ids so the home stack's weights never mix with the rec center's.
@@ -79,12 +81,53 @@ export const EXERCISES = {
   gobletsquat: { name: 'Goblet squat', kind: 'acc', inc: 5, muscles: ['quads', 'glutes'], also: ['core'], cue: 'Heaviest dumbbell held at your chest, sit down between your hips, slow on the way down.' },
   dbhipthrust: { name: 'Dumbbell hip thrust', kind: 'acc', inc: 5, muscles: ['glutes'], also: ['hamstrings'], cue: 'Upper back on the bench, dumbbell on your hips. Ribs down, pause at the top.' },
   ballcurl: { name: 'Stability ball hamstring curl', kind: 'acc', inc: 5, bw: true, muscles: ['hamstrings'], cue: 'Heels on the ball, hips up, curl in, slow out. Go single-leg once 3 × 12 is easy.' },
-  homepulldown: { name: 'Lat pulldown (home machine)', kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Top pulley on the Body-Solid. Pull to the top of the chest.' },
+  homepulldown: { name: 'Lat pulldown (home machine)', homeOnly: true, kind: 'acc', inc: 10, muscles: ['back', 'biceps'], cue: 'Top pulley on the Body-Solid. Pull to the top of the chest.' },
   inclinerow: { name: 'Chest-supported dumbbell row', kind: 'acc', inc: 5, muscles: ['back'], also: ['biceps'], cue: 'Chest down on the bench set to an incline. Squeeze shoulder blades at the top.' },
-  homepallof: { name: 'Pallof press (home machine)', kind: 'acc', inc: 5, muscles: ['core'], perSide: true, cue: 'Middle or low pulley on the Body-Solid. Don’t let the cable turn you.' },
-  homepushdown: { name: 'Triceps pushdown (home machine)', kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'Top pulley on the Body-Solid. Elbows pinned.' },
+  homepallof: { name: 'Pallof press (home machine)', homeOnly: true, kind: 'acc', inc: 5, muscles: ['core'], perSide: true, cue: 'Middle or low pulley on the Body-Solid. Don’t let the cable turn you.' },
+  homepushdown: { name: 'Triceps pushdown (home machine)', homeOnly: true, kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'Top pulley on the Body-Solid. Elbows pinned.' },
+  // Extra options for swapping mid-workout (see swapOptions).
+  pushup: { name: 'Push-up', kind: 'acc', inc: 5, bw: true, muscles: ['chest', 'triceps'], also: ['shoulders', 'core'], cue: 'Body in one line, chest to an inch off the floor. Add a weight vest or plate once 3 × 15 is easy.' },
+  dbfly: { name: 'Dumbbell fly', kind: 'acc', inc: 5, muscles: ['chest'], cue: 'Flat or low incline, soft elbows, deep stretch, squeeze up.' },
+  cablefly: { name: 'Cable fly', kind: 'acc', inc: 5, gym: true, muscles: ['chest'], cue: 'Step forward, slight lean, hug a big tree.' },
+  trxrow: { name: 'TRX row', kind: 'acc', inc: 5, bw: true, muscles: ['back'], also: ['biceps'], cue: 'Body straight, pull hands to ribs. Walk your feet forward to make it harder.' },
+  rearfly: { name: 'Rear delt fly', kind: 'acc', inc: 5, muscles: ['shoulders'], also: ['back'], cue: 'Chest on an incline bench or hinge over, light dumbbells, lead with the pinkies.' },
+  revlunge: { name: 'Dumbbell reverse lunge', kind: 'acc', inc: 5, perSide: true, muscles: ['quads', 'glutes'], cue: 'Step back, back knee kisses the floor, drive through the front heel.' },
+  legext: { name: 'Leg extension', kind: 'acc', inc: 10, gym: true, muscles: ['quads'], cue: 'Pause at the top, slow lowering.' },
+  slbridge: { name: 'Single-leg glute bridge', kind: 'acc', inc: 5, bw: true, perSide: true, muscles: ['glutes'], also: ['hamstrings'], cue: 'Shoulders on the floor or bench, other knee pulled in, pause at the top.' },
+  hammercurl: { name: 'Hammer curl', kind: 'acc', inc: 5, muscles: ['biceps'], cue: 'Thumbs up, elbows pinned.' },
+  ohtri: { name: 'Overhead dumbbell triceps extension', kind: 'acc', inc: 5, muscles: ['triceps'], cue: 'One dumbbell in both hands, elbows in, deep stretch behind the head.' },
+  deadbug: { name: 'Dead bug', kind: 'acc', inc: 5, bw: true, perSide: true, muscles: ['core'], cue: 'Low back pressed into the floor the whole time, slow reach.' },
+  dbcalf: { name: 'Dumbbell calf raise', kind: 'acc', inc: 5, muscles: ['calves'], cue: 'Balls of the feet on a plate or step, full stretch, pause at the bottom.' },
 };
 export const exName = (id) => (EXERCISES[id] || { name: id }).name;
+
+/**
+ * What can stand in for an exercise mid-workout.
+ *   exId:    the exercise being replaced
+ *   muscles: muscle ids to match (default: the exercise's own main muscles)
+ *   home:    lifting at home (drops gym-only moves) or at the gym (drops home-machine moves)
+ * Jumps only trade for jumps, lifts only for lifts. Best match first: hits the same main muscles,
+ * (the first one most), then also works them as a secondary muscle, then the same kind (main lift vs
+ * hypertrophy), with focused moves ahead of ones that spread across other muscles.
+ */
+export function swapOptions(exId, { muscles, home = false } = {}) {
+  const cur = EXERCISES[exId];
+  if (!cur) return [];
+  const want = muscles && muscles.length ? muscles : cur.muscles;
+  const jump = cur.kind === 'jump';
+  return Object.entries(EXERCISES)
+    .filter(([id, ex]) => id !== exId && (ex.kind === 'jump') === jump && (home ? !ex.gym : !ex.homeOnly))
+    .map(([id, ex]) => {
+      const main = ex.muscles.filter((m) => want.includes(m)).length;
+      const also = (ex.also || []).filter((m) => want.includes(m)).length;
+      const lead = ex.muscles.includes(want[0]) ? 2 : 0; // the first muscle is what it's mostly for
+      const extra = (ex.muscles.length - main) * 0.25; // focused moves before ones that spread out
+      return { id, ex, main, score: main * 4 + lead + also + (ex.kind === cur.kind ? 0.5 : 0) - extra };
+    })
+    .filter((o) => (jump ? true : o.main > 0))
+    .sort((a, b) => b.score - a.score || a.ex.name.localeCompare(b.ex.name))
+    .map((o) => o.id);
+}
 
 /** Swaps you can pick in Plan for each exercise in the program. */
 export const ALTERNATIVES = {

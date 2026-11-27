@@ -85,6 +85,7 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
   const lowback = s('lowback');
   const notes = [];
   const swaps = settings.swaps || {};
+  const homeSwaps = settings.homeSwaps || {};
   const nextW = settings.nextWeights || {};
 
   // The last finished session's back rating, if it was over 3/10.
@@ -102,7 +103,7 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
   if (home) notes.push({ kind: 'home', text: 'Home gym version: dumbbell and home-machine stand-ins, and jumps go out instead of up (low ceiling).' });
 
   const items = DAYS[day].slots.map((slot, i) => {
-    let exId = home ? HOME[slot.ex] || slot.ex : swaps[slot.ex] || slot.ex;
+    let exId = home ? homeSwaps[slot.ex] || HOME[slot.ex] || slot.ex : swaps[slot.ex] || slot.ex;
     const why = [];
     if (home && exId !== slot.ex) why.push(`Home stand-in for ${exName(slot.ex).toLowerCase()}`);
     // A sore low back swaps the front squat for split squats.
@@ -213,6 +214,69 @@ export function prescribe({ day, date, sessions, settings, check = {}, minimal =
   });
 
   return { week: wk.week, block: wk.block, phase, deload, items, notes };
+}
+
+/**
+ * Swaps one exercise in a running workout for another (picked from swapOptions). Keeps the slot's
+ * place, rest and superset; sets and reps follow the new exercise's job: a main lift in the main slot
+ * keeps the week's scheme, anything else there becomes 3 × 6–8, and jumps keep their sets.
+ * The target weight comes from the new exercise's own history.
+ */
+export function swapItem(it, newId, { session, sessions, settings = {} }) {
+  const ex = EXERCISES[newId];
+  const index = Number(String(it.key).split('-')[0]) || 0;
+  const slot = (DAYS[session.day] && DAYS[session.day].slots[index]) || {};
+  const deload = !!session.deload;
+  const phase = PHASES[session.week] || PHASES[1];
+  const kind = ex.kind === 'jump' ? 'jump' : slot.main && ex.kind === 'main' ? 'main' : 'acc';
+  let { sets, lo, hi } = it;
+  if (kind !== it.kind) {
+    if (kind === 'main') {
+      [sets, lo] = phase.main;
+      hi = lo;
+      if (deload) sets = Math.ceil(sets / 2);
+    } else if (slot.main) {
+      sets = deload ? 2 : 3;
+      lo = 6;
+      hi = 8;
+    } else {
+      sets = deload ? Math.ceil(slot.sets / 2) : slot.sets || 3;
+      lo = slot.lo || 8;
+      hi = slot.hi || 12;
+    }
+  }
+  const target = targetFor({ exId: newId, kind, lo, hi, date: session.date, deload, sessions, override: (settings.nextWeights || {})[newId] });
+  const from = it.swappedFrom || it.ex;
+  const why = [];
+  if (target.why) why.push(target.why);
+  if (newId !== from) why.push(`Swapped in for ${exName(from).toLowerCase()}`);
+  return {
+    ...it,
+    key: `${index}-${newId}`,
+    ex: newId,
+    name: ex.name,
+    kind,
+    sets,
+    lo,
+    hi,
+    reps: kind === 'acc' ? target.reps : lo,
+    w: target.w,
+    base: target.w,
+    mult: 1,
+    rir: kind === 'main' ? 2 : kind === 'acc' ? 1 : null,
+    perSide: !!ex.perSide,
+    measure: ex.measure || 'Height',
+    unit: ex.unit || 'reps',
+    inc: ex.inc || 5,
+    bw: !!ex.bw,
+    assist: !!ex.assist,
+    cue: ex.cue,
+    lastBest: target.lastBest,
+    skipped: null,
+    swappedFrom: newId === from ? null : from,
+    why,
+    log: [],
+  };
 }
 
 /**

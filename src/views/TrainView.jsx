@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { put, patch, remove, useSettings, saveSettings } from '../store.js';
 import { useSessions, useCardio, useOpenSession } from '../lib/data.js';
-import { prescribe, weekInfo, nextDay, prsIn } from '../lib/engine.js';
-import { EXERCISES, DAYS, DAY_IDS, MUSCLES, WARMUP, dayLabel, exName } from '../lib/program.js';
+import { prescribe, weekInfo, nextDay, prsIn, swapItem } from '../lib/engine.js';
+import { EXERCISES, DAYS, DAY_IDS, MUSCLES, WARMUP, dayLabel, exName, muscleName, swapOptions } from '../lib/program.js';
 import { todayISO, addDays, fmt } from '../lib/dates.js';
 import { newId } from '../lib/ids.js';
 import { startRest, stopRest } from '../lib/rest.js';
@@ -359,6 +359,7 @@ function ExerciseCard({ it, session, updItem }) {
   const log = it.log || [];
   const doneAll = log.length >= it.sets;
   const [editing, setEditing] = useState(null); // index of a logged set being changed
+  const [swapping, setSwapping] = useState(false);
   const [reps, setReps] = useState(null);
   const [h, setH] = useState('');
   const curReps = reps ?? it.reps;
@@ -386,6 +387,8 @@ function ExerciseCard({ it, session, updItem }) {
     setEditing(null);
   };
 
+  const swapSheet = swapping && <SwapSheet it={it} session={session} updItem={updItem} onClose={() => setSwapping(false)} />;
+
   if (it.skipped) {
     return (
       <section className="card ex-card skipped">
@@ -393,7 +396,11 @@ function ExerciseCard({ it, session, updItem }) {
           <h3 className="ex-name">{it.name}</h3>
           <span className="meta">Skipped · {it.skipped}</span>
         </div>
-        <button className="mini" onClick={() => updItem(it.key, (x) => ({ ...x, skipped: null }))}>Do it anyway</button>
+        <div className="btn-row">
+          <button className="mini" onClick={() => updItem(it.key, (x) => ({ ...x, skipped: null }))}>Do it anyway</button>
+          <button className="mini" onClick={() => setSwapping(true)}><Icon name="swap" size={14} /> Swap it</button>
+        </div>
+        {swapSheet}
       </section>
     );
   }
@@ -405,7 +412,12 @@ function ExerciseCard({ it, session, updItem }) {
           {it.ss && <span className="ss-tag">{it.ss}</span>}
           <h3 className="ex-name">{it.name}</h3>
         </div>
-        <span className="meta">{doneAll ? 'Done ✓' : `rest ${Math.floor(it.rest / 60)}:${String(it.rest % 60).padStart(2, '0')}`}</span>
+        <span className="ex-side">
+          <span className="meta">{doneAll ? 'Done ✓' : `rest ${Math.floor(it.rest / 60)}:${String(it.rest % 60).padStart(2, '0')}`}</span>
+          {!doneAll && (
+            <button className="mini swap-btn" aria-label={`Swap ${it.name}`} onClick={() => setSwapping(true)}><Icon name="swap" size={14} /> Swap</button>
+          )}
+        </span>
       </div>
       <p className="ex-rx">
         <b>{it.sets} × {it.kind === 'acc' && it.lo !== it.hi ? `${it.lo}–${it.hi}` : it.lo}{it.unit === 'm' ? ' m' : ''}{it.perSide ? ' per side' : ''}</b>
@@ -493,7 +505,93 @@ function ExerciseCard({ it, session, updItem }) {
       {doneAll && (
         <button className="link-btn" onClick={() => updItem(it.key, (x) => ({ ...x, sets: x.sets + 1 }))}>+ Add a set</button>
       )}
+      {swapSheet}
     </section>
+  );
+}
+
+/* ---------- Swapping an exercise mid-workout ---------- */
+
+function SwapSheet({ it, session, updItem, onClose }) {
+  const s = useSettings();
+  const sessions = useSessions();
+  const home = !!session.home;
+  const from = it.swappedFrom || it.ex; // what the program had here
+  const own = (EXERCISES[from] || EXERCISES[it.ex]).muscles;
+  const jump = it.kind === 'jump';
+  const [muscles, setMuscles] = useState(own);
+  const [keep, setKeep] = useState(false);
+  const same = muscles.length === own.length && muscles.every((m) => own.includes(m));
+  const inToday = new Set((session.items || []).filter((x) => x.key !== it.key && !x.skipped).map((x) => x.ex));
+  const options = useMemo(() => swapOptions(it.ex, { muscles, home }), [it.ex, muscles, home]);
+  const logged = (it.log || []).length;
+
+  const pick = (id) => {
+    if (logged && !window.confirm(`Drop the ${logged} set${logged > 1 ? 's' : ''} you logged of ${it.name}?`)) return;
+    updItem(it.key, (x) => swapItem(x, id, { session, sessions, settings: s }));
+    if (keep && it.slot) {
+      const field = home ? 'homeSwaps' : 'swaps';
+      const next = { ...(s[field] || {}) };
+      if (id === it.slot) delete next[it.slot];
+      else next[it.slot] = id;
+      saveSettings({ [field]: next });
+    }
+    haptic('tick');
+    toast(keep ? `${exName(id)} from now on${home ? ' at home' : ''}` : `Swapped in ${exName(id)}`);
+    onClose();
+  };
+
+  return (
+    <Sheet title={`Swap ${it.name}`} onClose={onClose}>
+      {it.swappedFrom && (
+        <button className="btn ghost wide swap-back" onClick={() => pick(it.swappedFrom)}>
+          <Icon name="left" size={16} /> Back to {exName(it.swappedFrom)}
+        </button>
+      )}
+
+      {jump ? (
+        <p className="sheet-sub muted small">Other jumps{home ? ' that stay low for the home ceiling' : ''}.</p>
+      ) : (
+        <>
+          <h3 className="sub-h">Muscle</h3>
+          <div className="chips swap-muscles">
+            <button className="chip" aria-pressed={same} onClick={() => setMuscles(own)}>Same as {exName(from)}</button>
+            {MUSCLES.filter((m) => m.id !== 'lowback').map((m) => (
+              <button key={m.id} className="chip" aria-pressed={!same && muscles.length === 1 && muscles[0] === m.id} onClick={() => setMuscles([m.id])}>
+                {m.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      <ul className="rows swap-list">
+        {options.length === 0 && <li className="row muted">Nothing {home ? 'at home ' : ''}for that muscle yet.</li>}
+        {options.map((id) => {
+          const ex = EXERCISES[id];
+          return (
+            <li key={id} className="row">
+              <button className="task-open row-title swap-opt" onClick={() => pick(id)}>
+                <b>{ex.name}</b>
+                <span className="muted small">
+                  {ex.muscles.map(muscleName).join(', ')}
+                  {ex.kind === 'main' ? ' · main lift' : ''}
+                  {inToday.has(id) ? ' · already in today’s workout' : ''}
+                </span>
+              </button>
+              <Icon name="right" size={16} />
+            </li>
+          );
+        })}
+      </ul>
+
+      {it.slot && (
+        <label className="toggle keep-toggle">
+          <span>Use it every time{home ? ' at home' : ' at the gym'} <span className="muted small">— otherwise just today</span></span>
+          <input type="checkbox" checked={keep} onChange={(e) => setKeep(e.target.checked)} />
+        </label>
+      )}
+    </Sheet>
   );
 }
 
